@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Keypair } from "@solana/web3.js";
 import { BitvmBridge } from "../target/types/bitvm_bridge";
-import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { assert } from "chai";
 
 describe("bitvm-bridge-contracts-solana", () => {
@@ -42,9 +42,12 @@ describe("bitvm-bridge-contracts-solana", () => {
     console.log(`Transaction Signature: ${transactionSignature}`);
   });
 
-  it('Mint some tokens to your wallet!', async () => {
+  it("Mint some tokens to your wallet!", async () => {
     // Derive the associated token address account for the mint and payer.
-    const associatedTokenAccountAddress = getAssociatedTokenAddressSync(mintKeypair.publicKey, payer.publicKey);
+    const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
+      mintKeypair.publicKey,
+      payer.publicKey
+    );
 
     // Amount of tokens to mint.
     const amount = new anchor.BN(100);
@@ -59,12 +62,14 @@ describe("bitvm-bridge-contracts-solana", () => {
       })
       .rpc();
 
-    console.log('Success!');
-    console.log(`   Associated Token Account Address: ${associatedTokenAccountAddress}`);
+    console.log("Success!");
+    console.log(
+      `   Associated Token Account Address: ${associatedTokenAccountAddress}`
+    );
     console.log(`   Transaction Signature: ${transactionSignature}`);
   });
 
-  it('Burn some tokens from your wallet!', async () => {
+  it("Burn some tokens from your wallet!", async () => {
     // Amount of tokens to burn.
     const amount = new anchor.BN(80);
 
@@ -80,11 +85,11 @@ describe("bitvm-bridge-contracts-solana", () => {
       })
       .rpc();
 
-    console.log('Success!');
+    console.log("Success!");
     console.log(`   Transaction Signature: ${transactionSignature}`);
   });
 
-  it('Transfer some tokens to another wallet!', async () => {
+  it("Transfer some tokens to another wallet!", async () => {
     const amount = new anchor.BN(5);
 
     const transactionSignature = await program.methods
@@ -96,28 +101,31 @@ describe("bitvm-bridge-contracts-solana", () => {
       })
       .rpc();
 
-    console.log('Success!');
+    console.log("Success!");
     console.log(`   Transaction Signature: ${transactionSignature}`);
   });
 
-  it('Get the balance of your associated token account!', async () => {
-    const senderTokenAccountAddress = getAssociatedTokenAddressSync(mintKeypair.publicKey, payer.publicKey);
+  it("Get the balance of your associated token account!", async () => {
+    const senderTokenAccountAddress = getAssociatedTokenAddressSync(
+      mintKeypair.publicKey,
+      payer.publicKey
+    );
 
-    const recipientTokenAccountAddress = getAssociatedTokenAddressSync(mintKeypair.publicKey, recipient.publicKey); 
+    const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
+      mintKeypair.publicKey,
+      recipient.publicKey
+    );
 
-    const senderBalance = await provider.connection.getTokenAccountBalance(senderTokenAccountAddress);
+    const senderBalance = await provider.connection.getTokenAccountBalance(
+      senderTokenAccountAddress
+    );
 
-    const recipientBalance = await provider.connection.getTokenAccountBalance(recipientTokenAccountAddress);
-    
+    const recipientBalance = await provider.connection.getTokenAccountBalance(
+      recipientTokenAccountAddress
+    );
+
     assert.strictEqual(senderBalance.value.uiAmount, 15);
 
     assert.strictEqual(recipientBalance.value.uiAmount, 5);
-
   });
-
-
-
-
-
-
 });
