@@ -11,7 +11,7 @@ bitvm_bridge_contracts_solana = "AK4wVnCvogwctZjY6PYNpStXKanoiJN4yeyVcRRRtxkg"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
