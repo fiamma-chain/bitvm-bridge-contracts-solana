@@ -13,7 +13,7 @@ pub struct BurnToken<'info> {
         associated_token::mint = mint_account,
         associated_token::authority = authority,
     )]
-    pub token_account: Account<'info, TokenAccount>,
+    pub associated_token_account: Account<'info, TokenAccount>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
@@ -27,7 +27,7 @@ pub fn burn_token(ctx: Context<BurnToken>, amount: u64, btc_addr: String, operat
 
     let cpi_accounts = Burn {
         mint: ctx.accounts.mint_account.to_account_info(),
-        from: ctx.accounts.token_account.to_account_info(),
+        from: ctx.accounts.associated_token_account.to_account_info(),
         authority: ctx.accounts.authority.to_account_info(),
     };
 
@@ -36,7 +36,7 @@ pub fn burn_token(ctx: Context<BurnToken>, amount: u64, btc_addr: String, operat
     token::burn(cpi_ctx, adjusted_amount)?;
 
     emit!(BurnEvent {
-        from: ctx.accounts.token_account.key(),
+        from: ctx.accounts.associated_token_account.key(),
         btc_addr: btc_addr,
         value: adjusted_amount,
         operator_id: operator_id,

@@ -23,4 +23,8 @@ pub mod bitvm_bridge {
     pub fn burn(ctx: Context<BurnToken>, amount: u64, btc_addr: String, operator_id: u64) -> Result<()> {
         burn::burn_token(ctx, amount, btc_addr, operator_id)
     }
+
+    pub fn transfer(ctx: Context<TransferTokens>, amount: u64) -> Result<()> {
+        transfer::transfer_token(ctx, amount)
+    }
 }
