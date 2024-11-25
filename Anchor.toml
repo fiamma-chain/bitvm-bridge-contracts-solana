@@ -7,6 +7,9 @@ skip-lint = false
 [programs.localnet]
 bitvm_bridge = "AK4wVnCvogwctZjY6PYNpStXKanoiJN4yeyVcRRRtxkg"
 
+[programs.devnet]
+bitvm_bridge = "3ix6NvnK8HdsdsyFY6jprZpYjwHCqCuaLL2FvE1R9cuC"
+
 [registry]
 url = "https://api.apr.dev"
 
@@ -25,7 +28,7 @@ ledger = ".anchor/test-ledger"
 rpc_port = 8899
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
