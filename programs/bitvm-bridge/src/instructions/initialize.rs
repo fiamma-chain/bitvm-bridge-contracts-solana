@@ -9,20 +9,45 @@ use {
     },
 };
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct BridgeParams {
+    pub max_btc_per_mint: u64,
+    pub min_btc_per_mint: u64,
+    pub max_btc_per_burn: u64,
+    pub min_btc_per_burn: u64,
+}
+
+#[account]
+pub struct BridgeState {
+    pub owner: Pubkey,
+    pub max_btc_per_mint: u64,
+    pub min_btc_per_mint: u64,
+    pub max_btc_per_burn: u64,
+    pub min_btc_per_burn: u64,
+    pub burn_paused: bool,
+}
+
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub owner: Signer<'info>,
 
     #[account(
         init,
-        payer = payer,
+        payer = owner,
         mint::decimals = 8,
-        mint::authority = payer.key(),
-        mint::freeze_authority = payer.key(),
+        mint::authority = owner.key(),
+        mint::freeze_authority = owner.key(),
 
     )]
     pub mint_account: Account<'info, Mint>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + std::mem::size_of::<BridgeState>(),
+    )]
+    pub bridge_state: Account<'info, BridgeState>,
     /// CHECK: Validate address by deriving pda
     #[account(
         mut,
@@ -43,6 +68,7 @@ pub fn initialize(
     token_name: String,
     token_symbol: String,
     token_uri: String,
+    bridge_params: BridgeParams,
 ) -> Result<()> {
     msg!("Creating metadata account");
 
@@ -54,9 +80,9 @@ pub fn initialize(
             CreateMetadataAccountsV3 {
                 metadata: ctx.accounts.metadata_account.to_account_info(),
                 mint: ctx.accounts.mint_account.to_account_info(),
-                mint_authority: ctx.accounts.payer.to_account_info(),
-                update_authority: ctx.accounts.payer.to_account_info(),
-                payer: ctx.accounts.payer.to_account_info(),
+                mint_authority: ctx.accounts.owner.to_account_info(),
+                update_authority: ctx.accounts.owner.to_account_info(),
+                payer: ctx.accounts.owner.to_account_info(),
                 system_program: ctx.accounts.system_program.to_account_info(),
                 rent: ctx.accounts.rent.to_account_info(),
             },
@@ -74,6 +100,12 @@ pub fn initialize(
         true,  // Update authority is signer
         None,  // Collection details
     )?;
+
+    ctx.accounts.bridge_state.owner = ctx.accounts.owner.key();
+    ctx.accounts.bridge_state.max_btc_per_mint = bridge_params.max_btc_per_mint;
+    ctx.accounts.bridge_state.min_btc_per_mint = bridge_params.min_btc_per_mint;
+    ctx.accounts.bridge_state.max_btc_per_burn = bridge_params.max_btc_per_burn;
+    ctx.accounts.bridge_state.min_btc_per_burn = bridge_params.min_btc_per_burn;
 
     msg!("Initialized successfully.");
 

@@ -10,15 +10,17 @@ describe("bitvm-bridge-contracts-solana", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(provider);
 
-  const payer = provider.wallet as anchor.Wallet;
+  const owner = provider.wallet as anchor.Wallet;
 
   const program = anchor.workspace.BitvmBridge as Program<BitvmBridge>;
 
   const metadata = {
-    name: "Solana Gold",
-    symbol: "GOLDSOL",
+    name: "Mama BTC",
+    symbol: "mamaBTC",
     uri: "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json",
   };
+
+  const bridgeState = new Keypair();
 
   // Generate new keypair to use as address for mint account.
   const mintKeypair = new Keypair();
@@ -26,15 +28,25 @@ describe("bitvm-bridge-contracts-solana", () => {
   // Generate new keypair to use as address for recipient wallet.
   const recipient = new Keypair();
 
+  console.log("Provider wallet:", provider.wallet.publicKey.toString());
+  console.log("Owner wallet:", owner.publicKey.toString());
+
   it("Initialize an SPL Token", async () => {
-    // Add your test here.
+
+    const bridgeParams = {
+      maxBtcPerMint: new anchor.BN(1000000),
+      minBtcPerMint: new anchor.BN(7500),
+      maxBtcPerBurn: new anchor.BN(1000000),
+      minBtcPerBurn: new anchor.BN(7500),
+    };
     const transactionSignature = await program.methods
-      .initialize(metadata.name, metadata.symbol, metadata.uri)
+      .initialize(metadata.name, metadata.symbol, metadata.uri, bridgeParams)
       .accounts({
-        payer: payer.publicKey,
+        owner: owner.publicKey,
         mintAccount: mintKeypair.publicKey,
+        bridgeState: bridgeState.publicKey,
       })
-      .signers([mintKeypair])
+      .signers([mintKeypair, bridgeState])
       .rpc();
 
     console.log("Mint Success!");
@@ -46,19 +58,20 @@ describe("bitvm-bridge-contracts-solana", () => {
     // Derive the associated token address account for the mint and payer.
     const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
       mintKeypair.publicKey,
-      payer.publicKey
+      owner.publicKey
     );
 
     // Amount of tokens to mint.
-    const amount = new anchor.BN(100);
+    const amount = new anchor.BN(100000);
 
     // Mint the tokens to the associated token account.
     const transactionSignature = await program.methods
       .mint(amount)
       .accounts({
-        mintAuthority: payer.publicKey,
-        recipient: payer.publicKey,
+        mintAuthority: owner.publicKey,
+        recipient: owner.publicKey,
         mintAccount: mintKeypair.publicKey,
+        bridgeState: bridgeState.publicKey,
       })
       .rpc();
 
@@ -71,7 +84,7 @@ describe("bitvm-bridge-contracts-solana", () => {
 
   it("Burn some tokens from your wallet!", async () => {
     // Amount of tokens to burn.
-    const amount = new anchor.BN(80);
+    const amount = new anchor.BN(20000);
 
     const btcAddr = "bc1q650503685h3xqk4z7w476k476k476k476k476";
     const operatorId = new anchor.BN(1);
@@ -80,8 +93,9 @@ describe("bitvm-bridge-contracts-solana", () => {
     const transactionSignature = await program.methods
       .burn(amount, btcAddr, operatorId)
       .accounts({
-        authority: payer.publicKey,
+        authority: owner.publicKey,
         mintAccount: mintKeypair.publicKey,
+        bridgeState: bridgeState.publicKey,
       })
       .rpc();
 
@@ -90,12 +104,12 @@ describe("bitvm-bridge-contracts-solana", () => {
   });
 
   it("Transfer some tokens to another wallet!", async () => {
-    const amount = new anchor.BN(5);
+    const amount = new anchor.BN(10000);
 
     const transactionSignature = await program.methods
       .transfer(amount)
       .accounts({
-        sender: payer.publicKey,
+        sender: owner.publicKey,
         recipient: recipient.publicKey,
         mintAccount: mintKeypair.publicKey,
       })
@@ -108,7 +122,7 @@ describe("bitvm-bridge-contracts-solana", () => {
   it("Get the balance of your associated token account!", async () => {
     const senderTokenAccountAddress = getAssociatedTokenAddressSync(
       mintKeypair.publicKey,
-      payer.publicKey
+      owner.publicKey
     );
 
     const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
@@ -124,8 +138,73 @@ describe("bitvm-bridge-contracts-solana", () => {
       recipientTokenAccountAddress
     );
 
-    assert.strictEqual(senderBalance.value.uiAmount, 15);
+    assert.strictEqual(senderBalance.value.uiAmount, 70000);
 
-    assert.strictEqual(recipientBalance.value.uiAmount, 5);
+    assert.strictEqual(recipientBalance.value.uiAmount, 10000);
+  });
+
+  it("Pause the bridge burn!", async () => {
+    const transactionSignature = await program.methods
+      .pauseBurn()
+      .accounts({
+        owner: owner.publicKey,
+        bridgeState: bridgeState.publicKey,
+      })
+      .rpc();
+
+    console.log("Success!");
+    console.log(`   Transaction Signature: ${transactionSignature}`);
+  });
+
+  it("Burn some tokens from your wallet when paused should fail!", async () => {
+    const amount = new anchor.BN(20000);
+    const btcAddr = "bc1q650503685h3xqk4z7w476k476k476k476k476";
+    const operatorId = new anchor.BN(1);
+
+    try {
+      await program.methods
+        .burn(amount, btcAddr, operatorId)
+        .accounts({
+          authority: owner.publicKey,
+          mintAccount: mintKeypair.publicKey,
+          bridgeState: bridgeState.publicKey,
+        })
+        .rpc();
+      assert.fail("should fail");
+    } catch (error) {
+      assert.include(error.message, "BurnPaused");
+    }
+  });
+
+  it("Unpause the bridge burn!", async () => {
+    const transactionSignature = await program.methods
+      .unpauseBurn()
+      .accounts({
+        owner: owner.publicKey,
+        bridgeState: bridgeState.publicKey,
+      })
+      .rpc();
+
+    console.log("Success!");
+    console.log(`   Transaction Signature: ${transactionSignature}`);
+  });
+
+  it("Non-owner performs mint should fail!", async () => {
+    const amount = new anchor.BN(10000);
+
+    const nonOwner = new Keypair();
+
+    try {
+      await program.methods.mint(amount).accounts({
+        mintAuthority: nonOwner.publicKey,
+        recipient: recipient.publicKey,
+        mintAccount: mintKeypair.publicKey,
+        bridgeState: bridgeState.publicKey,
+      }).signers([nonOwner]).rpc();
+      assert.fail("should fail");
+    } catch (error) {
+      assert.include(error.message, "UnauthorizedMinter");
+    }
   });
 });
+

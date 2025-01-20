@@ -1,30 +1,65 @@
 use anchor_lang::prelude::*;
 
-
+pub mod error;
 pub mod events;
 pub mod instructions;
 
 use instructions::*;
 
-declare_id!("3ix6NvnK8HdsdsyFY6jprZpYjwHCqCuaLL2FvE1R9cuC");
+declare_id!("J4RgZBMW6aKtjYLEvXWb82GNosGjCN49Zr2TmBiBcju5");
 
 #[program]
 pub mod bitvm_bridge {
 
     use super::*;
-    pub fn initialize(ctx: Context<Initialize>, token_name: String, token_symbol: String, token_uri: String) -> Result<()> {
-        initialize::initialize(ctx, token_name, token_symbol, token_uri)
+    pub fn initialize(
+        ctx: Context<Initialize>,
+        token_name: String,
+        token_symbol: String,
+        token_uri: String,
+        bridge_params: BridgeParams,
+    ) -> Result<()> {
+        initialize::initialize(ctx, token_name, token_symbol, token_uri, bridge_params)
     }
 
     pub fn mint(ctx: Context<MintToken>, amount: u64) -> Result<()> {
         mint::mint_token(ctx, amount)
     }
 
-    pub fn burn(ctx: Context<BurnToken>, amount: u64, btc_addr: String, operator_id: u64) -> Result<()> {
+    pub fn burn(
+        ctx: Context<BurnToken>,
+        amount: u64,
+        btc_addr: String,
+        operator_id: u64,
+    ) -> Result<()> {
         burn::burn_token(ctx, amount, btc_addr, operator_id)
     }
 
     pub fn transfer(ctx: Context<TransferTokens>, amount: u64) -> Result<()> {
         transfer::transfer_token(ctx, amount)
+    }
+
+    pub fn update_bridge_params(
+        ctx: Context<UpdateBridgeParams>,
+        max_btc_per_mint: u64,
+        min_btc_per_mint: u64,
+        max_btc_per_burn: u64,
+        min_btc_per_burn: u64,
+    ) -> Result<()> {
+        admin::update_bridge_params(
+            ctx,
+            max_btc_per_mint,
+            min_btc_per_mint,
+            max_btc_per_burn,
+            min_btc_per_burn,
+        )
+    }
+
+    pub fn pause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
+        admin::pause_burn(ctx)
+    }
+
+    pub fn unpause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
+        admin::unpause_burn(ctx)
     }
 }

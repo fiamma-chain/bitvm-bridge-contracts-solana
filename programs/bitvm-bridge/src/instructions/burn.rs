@@ -1,7 +1,10 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Burn, Mint, Token, TokenAccount};
 
+use crate::error::ErrorCode;
 use crate::events::BurnEvent;
+
+use super::BridgeState;
 
 #[derive(Accounts)]
 pub struct BurnToken<'info> {
@@ -18,10 +21,26 @@ pub struct BurnToken<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
+    #[account(
+        constraint = !bridge_state.burn_paused @ ErrorCode::BurnPaused
+    )]
+    pub bridge_state: Account<'info, BridgeState>,
+
     pub token_program: Program<'info, Token>,
 }
 
-pub fn burn_token(ctx: Context<BurnToken>, amount: u64, btc_addr: String, operator_id: u64) -> Result<()> {
+pub fn burn_token(
+    ctx: Context<BurnToken>,
+    amount: u64,
+    btc_addr: String,
+    operator_id: u64,
+) -> Result<()> {
+    let bridge_state = &ctx.accounts.bridge_state;
+
+    require!(
+        amount >= bridge_state.min_btc_per_burn && amount <= bridge_state.max_btc_per_burn,
+        ErrorCode::InvalidPegoutAmount
+    );
     let mint = &ctx.accounts.mint_account;
     let adjusted_amount = amount * 10u64.pow(mint.decimals as u32);
 

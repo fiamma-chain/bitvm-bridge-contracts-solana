@@ -5,10 +5,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-bitvm_bridge = "AK4wVnCvogwctZjY6PYNpStXKanoiJN4yeyVcRRRtxkg"
+bitvm_bridge = "J4RgZBMW6aKtjYLEvXWb82GNosGjCN49Zr2TmBiBcju5"
 
 [programs.devnet]
-bitvm_bridge = "3ix6NvnK8HdsdsyFY6jprZpYjwHCqCuaLL2FvE1R9cuC"
+bitvm_bridge = "J4RgZBMW6aKtjYLEvXWb82GNosGjCN49Zr2TmBiBcju5"
 
 [registry]
 url = "https://api.apr.dev"
