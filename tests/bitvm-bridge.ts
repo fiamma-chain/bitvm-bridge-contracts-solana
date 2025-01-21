@@ -7,6 +7,9 @@ import { assert } from "chai";
 
 describe("bitvm-bridge-contracts-solana", () => {
   const provider = anchor.AnchorProvider.env();
+
+  provider.opts.commitment = 'confirmed';
+  provider.opts.preflightCommitment = 'confirmed';
   // Configure the client to use the local cluster.
   anchor.setProvider(provider);
 
