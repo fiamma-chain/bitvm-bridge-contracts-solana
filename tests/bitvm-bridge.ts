@@ -20,8 +20,6 @@ describe("bitvm-bridge-contracts-solana", () => {
     uri: "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json",
   };
 
-  const bridgeState = new Keypair();
-
   // Generate new keypair to use as address for mint account.
   const mintKeypair = new Keypair();
 
@@ -44,9 +42,8 @@ describe("bitvm-bridge-contracts-solana", () => {
       .accounts({
         owner: owner.publicKey,
         mintAccount: mintKeypair.publicKey,
-        bridgeState: bridgeState.publicKey,
       })
-      .signers([mintKeypair, bridgeState])
+      .signers([mintKeypair])
       .rpc();
 
     console.log("Mint Success!");
@@ -71,7 +68,6 @@ describe("bitvm-bridge-contracts-solana", () => {
         mintAuthority: owner.publicKey,
         recipient: owner.publicKey,
         mintAccount: mintKeypair.publicKey,
-        bridgeState: bridgeState.publicKey,
       })
       .rpc();
 
@@ -95,7 +91,6 @@ describe("bitvm-bridge-contracts-solana", () => {
       .accounts({
         authority: owner.publicKey,
         mintAccount: mintKeypair.publicKey,
-        bridgeState: bridgeState.publicKey,
       })
       .rpc();
 
@@ -148,7 +143,6 @@ describe("bitvm-bridge-contracts-solana", () => {
       .pauseBurn()
       .accounts({
         owner: owner.publicKey,
-        bridgeState: bridgeState.publicKey,
       })
       .rpc();
 
@@ -167,7 +161,6 @@ describe("bitvm-bridge-contracts-solana", () => {
         .accounts({
           authority: owner.publicKey,
           mintAccount: mintKeypair.publicKey,
-          bridgeState: bridgeState.publicKey,
         })
         .rpc();
       assert.fail("should fail");
@@ -181,7 +174,6 @@ describe("bitvm-bridge-contracts-solana", () => {
       .unpauseBurn()
       .accounts({
         owner: owner.publicKey,
-        bridgeState: bridgeState.publicKey,
       })
       .rpc();
 
@@ -199,7 +191,6 @@ describe("bitvm-bridge-contracts-solana", () => {
         mintAuthority: nonOwner.publicKey,
         recipient: recipient.publicKey,
         mintAccount: mintKeypair.publicKey,
-        bridgeState: bridgeState.publicKey,
       }).signers([nonOwner]).rpc();
       assert.fail("should fail");
     } catch (error) {

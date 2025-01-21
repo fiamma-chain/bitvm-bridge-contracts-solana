@@ -45,6 +45,8 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = owner,
+        seeds = [b"bridge_state"],
+        bump,
         space = 8 + std::mem::size_of::<BridgeState>(),
     )]
     pub bridge_state: Account<'info, BridgeState>,

@@ -22,6 +22,8 @@ pub struct BurnToken<'info> {
     pub authority: Signer<'info>,
 
     #[account(
+        seeds = [b"bridge_state"],
+        bump,
         constraint = !bridge_state.burn_paused @ ErrorCode::BurnPaused
     )]
     pub bridge_state: Account<'info, BridgeState>,

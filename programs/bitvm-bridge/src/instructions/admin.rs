@@ -6,6 +6,8 @@ use anchor_lang::prelude::*;
 pub struct UpdateBridgeParams<'info> {
     #[account(
         mut,
+        seeds = [b"bridge_state"],
+        bump,
         constraint = bridge_state.owner == owner.key() @ ErrorCode::UnauthorizedOwner
     )]
     pub bridge_state: Account<'info, BridgeState>,
@@ -34,6 +36,8 @@ pub fn update_bridge_params(
 pub struct ToggleBurnPause<'info> {
     #[account(
         mut,
+        seeds = [b"bridge_state"],
+        bump,
         constraint = bridge_state.owner == owner.key() @ ErrorCode::UnauthorizedOwner
     )]
     pub bridge_state: Account<'info, BridgeState>,

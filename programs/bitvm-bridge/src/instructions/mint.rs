@@ -27,6 +27,8 @@ pub struct MintToken<'info> {
     pub associated_token_account: Account<'info, TokenAccount>,
 
     #[account(
+        seeds = [b"bridge_state"],
+        bump,
         constraint = bridge_state.owner == mint_authority.key() @ ErrorCode::UnauthorizedMinter
     )]
     pub bridge_state: Account<'info, BridgeState>,
