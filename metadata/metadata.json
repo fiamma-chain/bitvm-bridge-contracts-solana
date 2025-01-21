@@ -2,5 +2,5 @@
     "name": "Mama BTC",
     "symbol": "mamaBTC",
     "description": "Mama BTC is a Solana SPL token that bridges BTC to Solana.",
-    "image": "https://github.com/fiamma-chain/bitvm-bridge-contracts-solana/blob/main/assets/mama-btc.png"
+    "image": "https://github.com/fiamma-chain/bitvm-bridge-contracts-solana/blob/main/metadata/mama-btc.png"
 }

@@ -17,7 +17,7 @@ describe("bitvm-bridge-contracts-solana", () => {
   const metadata = {
     name: "Mama BTC",
     symbol: "mamaBTC",
-    uri: "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/spl-token.json",
+    uri: "https://raw.githubusercontent.com/fiamma-chain/bitvm-bridge-contracts-solana/refs/heads/main/metadata/metadata.json",
   };
 
   // Generate new keypair to use as address for mint account.
