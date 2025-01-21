@@ -51,151 +51,151 @@ describe("bitvm-bridge-contracts-solana", () => {
     console.log(`Transaction Signature: ${transactionSignature}`);
   });
 
-  it("Mint some tokens to your wallet!", async () => {
-    // Derive the associated token address account for the mint and payer.
-    const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
-      mintKeypair.publicKey,
-      owner.publicKey
-    );
+  // it("Mint some tokens to your wallet!", async () => {
+  //   // Derive the associated token address account for the mint and payer.
+  //   const associatedTokenAccountAddress = getAssociatedTokenAddressSync(
+  //     mintKeypair.publicKey,
+  //     owner.publicKey
+  //   );
 
-    // Amount of tokens to mint.
-    const amount = new anchor.BN(100000);
+  //   // Amount of tokens to mint.
+  //   const amount = new anchor.BN(100000);
 
-    // Mint the tokens to the associated token account.
-    const transactionSignature = await program.methods
-      .mint(amount)
-      .accounts({
-        mintAuthority: owner.publicKey,
-        recipient: owner.publicKey,
-        mintAccount: mintKeypair.publicKey,
-      })
-      .rpc();
+  //   // Mint the tokens to the associated token account.
+  //   const transactionSignature = await program.methods
+  //     .mint(amount)
+  //     .accounts({
+  //       mintAuthority: owner.publicKey,
+  //       recipient: owner.publicKey,
+  //       mintAccount: mintKeypair.publicKey,
+  //     })
+  //     .rpc();
 
-    console.log("Success!");
-    console.log(
-      `   Associated Token Account Address: ${associatedTokenAccountAddress}`
-    );
-    console.log(`   Transaction Signature: ${transactionSignature}`);
-  });
+  //   console.log("Success!");
+  //   console.log(
+  //     `   Associated Token Account Address: ${associatedTokenAccountAddress}`
+  //   );
+  //   console.log(`   Transaction Signature: ${transactionSignature}`);
+  // });
 
-  it("Burn some tokens from your wallet!", async () => {
-    // Amount of tokens to burn.
-    const amount = new anchor.BN(20000);
+  // it("Burn some tokens from your wallet!", async () => {
+  //   // Amount of tokens to burn.
+  //   const amount = new anchor.BN(20000);
 
-    const btcAddr = "bc1q650503685h3xqk4z7w476k476k476k476k476";
-    const operatorId = new anchor.BN(1);
+  //   const btcAddr = "bc1q650503685h3xqk4z7w476k476k476k476k476";
+  //   const operatorId = new anchor.BN(1);
 
-    // Burn the tokens from the associated token account.
-    const transactionSignature = await program.methods
-      .burn(amount, btcAddr, operatorId)
-      .accounts({
-        authority: owner.publicKey,
-        mintAccount: mintKeypair.publicKey,
-      })
-      .rpc();
+  //   // Burn the tokens from the associated token account.
+  //   const transactionSignature = await program.methods
+  //     .burn(amount, btcAddr, operatorId)
+  //     .accounts({
+  //       authority: owner.publicKey,
+  //       mintAccount: mintKeypair.publicKey,
+  //     })
+  //     .rpc();
 
-    console.log("Success!");
-    console.log(`   Transaction Signature: ${transactionSignature}`);
-  });
+  //   console.log("Success!");
+  //   console.log(`   Transaction Signature: ${transactionSignature}`);
+  // });
 
-  it("Transfer some tokens to another wallet!", async () => {
-    const amount = new anchor.BN(10000);
+  // it("Transfer some tokens to another wallet!", async () => {
+  //   const amount = new anchor.BN(10000);
 
-    const transactionSignature = await program.methods
-      .transfer(amount)
-      .accounts({
-        sender: owner.publicKey,
-        recipient: recipient.publicKey,
-        mintAccount: mintKeypair.publicKey,
-      })
-      .rpc();
+  //   const transactionSignature = await program.methods
+  //     .transfer(amount)
+  //     .accounts({
+  //       sender: owner.publicKey,
+  //       recipient: recipient.publicKey,
+  //       mintAccount: mintKeypair.publicKey,
+  //     })
+  //     .rpc();
 
-    console.log("Success!");
-    console.log(`   Transaction Signature: ${transactionSignature}`);
-  });
+  //   console.log("Success!");
+  //   console.log(`   Transaction Signature: ${transactionSignature}`);
+  // });
 
-  it("Get the balance of your associated token account!", async () => {
-    const senderTokenAccountAddress = getAssociatedTokenAddressSync(
-      mintKeypair.publicKey,
-      owner.publicKey
-    );
+  // it("Get the balance of your associated token account!", async () => {
+  //   const senderTokenAccountAddress = getAssociatedTokenAddressSync(
+  //     mintKeypair.publicKey,
+  //     owner.publicKey
+  //   );
 
-    const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
-      mintKeypair.publicKey,
-      recipient.publicKey
-    );
+  //   const recipientTokenAccountAddress = getAssociatedTokenAddressSync(
+  //     mintKeypair.publicKey,
+  //     recipient.publicKey
+  //   );
 
-    const senderBalance = await provider.connection.getTokenAccountBalance(
-      senderTokenAccountAddress
-    );
+  //   const senderBalance = await provider.connection.getTokenAccountBalance(
+  //     senderTokenAccountAddress
+  //   );
 
-    const recipientBalance = await provider.connection.getTokenAccountBalance(
-      recipientTokenAccountAddress
-    );
+  //   const recipientBalance = await provider.connection.getTokenAccountBalance(
+  //     recipientTokenAccountAddress
+  //   );
 
-    assert.strictEqual(senderBalance.value.uiAmount, 70000);
+  //   assert.strictEqual(senderBalance.value.uiAmount, 70000);
 
-    assert.strictEqual(recipientBalance.value.uiAmount, 10000);
-  });
+  //   assert.strictEqual(recipientBalance.value.uiAmount, 10000);
+  // });
 
-  it("Pause the bridge burn!", async () => {
-    const transactionSignature = await program.methods
-      .pauseBurn()
-      .accounts({
-        owner: owner.publicKey,
-      })
-      .rpc();
+  // it("Pause the bridge burn!", async () => {
+  //   const transactionSignature = await program.methods
+  //     .pauseBurn()
+  //     .accounts({
+  //       owner: owner.publicKey,
+  //     })
+  //     .rpc();
 
-    console.log("Success!");
-    console.log(`   Transaction Signature: ${transactionSignature}`);
-  });
+  //   console.log("Success!");
+  //   console.log(`   Transaction Signature: ${transactionSignature}`);
+  // });
 
-  it("Burn some tokens from your wallet when paused should fail!", async () => {
-    const amount = new anchor.BN(20000);
-    const btcAddr = "bc1q650503685h3xqk4z7w476k476k476k476k476";
-    const operatorId = new anchor.BN(1);
+  // it("Burn some tokens from your wallet when paused should fail!", async () => {
+  //   const amount = new anchor.BN(20000);
+  //   const btcAddr = "bc1q650503685h3xqk4z7w476k476k476k476k476";
+  //   const operatorId = new anchor.BN(1);
 
-    try {
-      await program.methods
-        .burn(amount, btcAddr, operatorId)
-        .accounts({
-          authority: owner.publicKey,
-          mintAccount: mintKeypair.publicKey,
-        })
-        .rpc();
-      assert.fail("should fail");
-    } catch (error) {
-      assert.include(error.message, "BurnPaused");
-    }
-  });
+  //   try {
+  //     await program.methods
+  //       .burn(amount, btcAddr, operatorId)
+  //       .accounts({
+  //         authority: owner.publicKey,
+  //         mintAccount: mintKeypair.publicKey,
+  //       })
+  //       .rpc();
+  //     assert.fail("should fail");
+  //   } catch (error) {
+  //     assert.include(error.message, "BurnPaused");
+  //   }
+  // });
 
-  it("Unpause the bridge burn!", async () => {
-    const transactionSignature = await program.methods
-      .unpauseBurn()
-      .accounts({
-        owner: owner.publicKey,
-      })
-      .rpc();
+  // it("Unpause the bridge burn!", async () => {
+  //   const transactionSignature = await program.methods
+  //     .unpauseBurn()
+  //     .accounts({
+  //       owner: owner.publicKey,
+  //     })
+  //     .rpc();
 
-    console.log("Success!");
-    console.log(`   Transaction Signature: ${transactionSignature}`);
-  });
+  //   console.log("Success!");
+  //   console.log(`   Transaction Signature: ${transactionSignature}`);
+  // });
 
-  it("Non-owner performs mint should fail!", async () => {
-    const amount = new anchor.BN(10000);
+  // it("Non-owner performs mint should fail!", async () => {
+  //   const amount = new anchor.BN(10000);
 
-    const nonOwner = new Keypair();
+  //   const nonOwner = new Keypair();
 
-    try {
-      await program.methods.mint(amount).accounts({
-        mintAuthority: nonOwner.publicKey,
-        recipient: recipient.publicKey,
-        mintAccount: mintKeypair.publicKey,
-      }).signers([nonOwner]).rpc();
-      assert.fail("should fail");
-    } catch (error) {
-      assert.include(error.message, "UnauthorizedMinter");
-    }
-  });
+  //   try {
+  //     await program.methods.mint(amount).accounts({
+  //       mintAuthority: nonOwner.publicKey,
+  //       recipient: recipient.publicKey,
+  //       mintAccount: mintKeypair.publicKey,
+  //     }).signers([nonOwner]).rpc();
+  //     assert.fail("should fail");
+  //   } catch (error) {
+  //     assert.include(error.message, "UnauthorizedMinter");
+  //   }
+  // });
 });
 

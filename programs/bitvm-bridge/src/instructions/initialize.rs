@@ -40,6 +40,7 @@ pub struct Initialize<'info> {
         mint::freeze_authority = owner.key(),
 
     )]
+    // token address
     pub mint_account: Account<'info, Mint>,
 
     #[account(
