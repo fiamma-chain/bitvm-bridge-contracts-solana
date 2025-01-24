@@ -1,11 +1,9 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Burn, Mint, Token, TokenAccount};
 
-use crate::error::ErrorCode;
+use crate::errors::BitvmBridgeError;
 use crate::events::BurnEvent;
-
-use super::BridgeState;
-
+use crate::state::BridgeState;
 #[derive(Accounts)]
 pub struct BurnToken<'info> {
     #[account(mut)]
@@ -24,7 +22,7 @@ pub struct BurnToken<'info> {
     #[account(
         seeds = [b"bridge_state"],
         bump,
-        constraint = !bridge_state.burn_paused @ ErrorCode::BurnPaused
+        constraint = !bridge_state.burn_paused @ BitvmBridgeError::BurnPaused
     )]
     pub bridge_state: Account<'info, BridgeState>,
 
@@ -41,7 +39,7 @@ pub fn burn_token(
 
     require!(
         amount >= bridge_state.min_btc_per_burn && amount <= bridge_state.max_btc_per_burn,
-        ErrorCode::InvalidPegoutAmount
+        BitvmBridgeError::InvalidPegoutAmount
     );
     let mint = &ctx.accounts.mint_account;
     let adjusted_amount = amount * 10u64.pow(mint.decimals as u32);

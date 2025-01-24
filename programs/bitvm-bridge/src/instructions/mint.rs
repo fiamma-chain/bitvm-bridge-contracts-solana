@@ -1,12 +1,10 @@
-use {
-    super::BridgeState,
-    crate::error::ErrorCode,
-    crate::events::MintEvent,
-    anchor_lang::prelude::*,
-    anchor_spl::{
-        associated_token::AssociatedToken,
-        token::{mint_to, Mint, MintTo, Token, TokenAccount},
-    },
+use crate::errors::BitvmBridgeError;
+use crate::events::MintEvent;
+use crate::state::BridgeState;
+use anchor_lang::prelude::*;
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
 
 #[derive(Accounts)]
@@ -29,7 +27,7 @@ pub struct MintToken<'info> {
     #[account(
         seeds = [b"bridge_state"],
         bump,
-        constraint = bridge_state.owner == mint_authority.key() @ ErrorCode::UnauthorizedMinter
+        constraint = bridge_state.owner == mint_authority.key() @ BitvmBridgeError::UnauthorizedMinter
     )]
     pub bridge_state: Account<'info, BridgeState>,
 
@@ -43,7 +41,7 @@ pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
 
     require!(
         amount >= bridge_state.min_btc_per_mint && amount <= bridge_state.max_btc_per_mint,
-        ErrorCode::InvalidPeginAmount
+        BitvmBridgeError::InvalidPeginAmount
     );
 
     msg!("Mint: {}", &ctx.accounts.mint_account.key());

@@ -1,5 +1,5 @@
-use crate::error::ErrorCode;
-use crate::BridgeState;
+use crate::errors::BitvmBridgeError;
+use crate::state::BridgeState;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -8,7 +8,7 @@ pub struct UpdateBridgeParams<'info> {
         mut,
         seeds = [b"bridge_state"],
         bump,
-        constraint = bridge_state.owner == owner.key() @ ErrorCode::UnauthorizedOwner
+        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
     )]
     pub bridge_state: Account<'info, BridgeState>,
 
@@ -38,7 +38,7 @@ pub struct ToggleBurnPause<'info> {
         mut,
         seeds = [b"bridge_state"],
         bump,
-        constraint = bridge_state.owner == owner.key() @ ErrorCode::UnauthorizedOwner
+        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
     )]
     pub bridge_state: Account<'info, BridgeState>,
 

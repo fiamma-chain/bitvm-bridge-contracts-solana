@@ -6,16 +6,17 @@ skip-lint = false
 
 [programs.devnet]
 bitvm_bridge = "2Bg9NHroaYhvb1aPTvxdVd9s1qPZG8W8YAkZYZ7vz5qY"
+btc_light_client = "3HP5LCDhsCpgr5mP9wdJVj2ETg1dUSywJ5Lnh9mUhGa7"
 
 [programs.localnet]
 bitvm_bridge = "2Bg9NHroaYhvb1aPTvxdVd9s1qPZG8W8YAkZYZ7vz5qY"
+btc_light_client = "3HP5LCDhsCpgr5mP9wdJVj2ETg1dUSywJ5Lnh9mUhGa7"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
-url = "https://empty-summer-smoke.SOLANA_DEVNET.quiknode.pro/114b576f434bbd3f6a5ab45558b071cb31f5175d"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
