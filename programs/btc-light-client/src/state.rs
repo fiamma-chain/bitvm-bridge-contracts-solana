@@ -8,17 +8,54 @@ pub struct BtcLightClientState {
     pub block_hashes: Vec<(u64, [u8; 32])>,
     pub period_targets: Vec<(u64, [u8; 32])>,
     pub is_testnet: bool,
+    pub min_confirmations: u64,
 }
 
 impl BtcLightClientState {
-    pub const SPACE: usize = 8 + 8 + 8 + (8 + 32) * 100 + (8 + 32) * 10 + 1;
+    pub const MAX_BLOCK_HASHES: usize = 5000;
+    pub const SPACE: usize = 8 + 8 + 8 + (8 + 32) * Self::MAX_BLOCK_HASHES + (8 + 32) * 10 + 1;
+    pub fn add_block_hash(&mut self, height: u64, hash: [u8; 32]) -> Result<()> {
+        // if the block hash already exists, update it
+        if let Some(item) = self.block_hashes.iter_mut().find(|(h, _)| *h == height) {
+            item.1 = hash;
+            return Ok(());
+        }
 
+        // if the capacity is reached, remove the oldest block
+        if self.block_hashes.len() >= Self::MAX_BLOCK_HASHES {
+            self.block_hashes.remove(0); // remove the oldest (lowest height)
+        }
+
+        // find the correct insert position (keep sorted by height)
+        let insert_pos = self
+            .block_hashes
+            .binary_search_by_key(&height, |(h, _)| *h)
+            .unwrap_or_else(|pos| pos);
+
+        // insert the new hash at the correct position
+        self.block_hashes.insert(insert_pos, (height, hash));
+
+        Ok(())
+    }
+
+    // get stored block range
+    pub fn get_block_range(&self) -> (Option<u64>, Option<u64>) {
+        if self.block_hashes.is_empty() {
+            return (None, None);
+        }
+
+        let min_height = self.block_hashes.first().map(|(h, _)| *h);
+        let max_height = self.block_hashes.last().map(|(h, _)| *h);
+
+        (min_height, max_height)
+    }
+
+    // get block hash by height
     pub fn get_block_hash(&self, height: u64) -> Result<[u8; 32]> {
-        self.block_hashes
-            .iter()
-            .find(|(h, _)| *h == height)
-            .map(|(_, hash)| *hash)
-            .ok_or(BtcLightClientError::BlockNotFound.into())
+        match self.block_hashes.binary_search_by_key(&height, |(h, _)| *h) {
+            Ok(idx) => Ok(self.block_hashes[idx].1),
+            Err(_) => Err(BtcLightClientError::BlockNotFound.into()),
+        }
     }
 
     pub fn get_period_target(&self, period: u64) -> Result<[u8; 32]> {

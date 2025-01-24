@@ -15,7 +15,7 @@ pub fn verify_transaction(
     let state = &ctx.accounts.state;
 
     require!(
-        state.latest_block_height >= block_height + tx_proof.min_confirmations,
+        state.latest_block_height >= block_height + state.min_confirmations,
         BtcLightClientError::InsufficientConfirmations
     );
 
@@ -78,7 +78,6 @@ pub struct VerifyTransaction<'info> {
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct BtcTxProof {
-    pub min_confirmations: u64,
     pub block_header: Vec<u8>,
     pub tx_id: [u8; 32],
     pub tx_index: u32,

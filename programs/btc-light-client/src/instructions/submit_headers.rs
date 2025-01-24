@@ -62,17 +62,7 @@ pub fn submit_block_headers(
             num_reorged += 1;
         }
 
-        if current_height <= state.latest_block_height {
-            for j in 0..state.block_hashes.len() {
-                if state.block_hashes[j].0 == current_height {
-                    state.block_hashes[j].1 = new_hash;
-                    break;
-                }
-            }
-        } else {
-            state.block_hashes.push((current_height, new_hash));
-        }
-
+        state.add_block_hash(current_height, new_hash)?;
         let expected_prev_hash = if i == 0 {
             BlockHash::from_byte_array(state.get_block_hash(block_height - 1)?)
         } else {
