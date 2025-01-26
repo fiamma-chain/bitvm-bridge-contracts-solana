@@ -40,8 +40,9 @@ describe("bitvm-bridge-contracts-solana", () => {
       maxBtcPerBurn: new anchor.BN(1000000),
       minBtcPerBurn: new anchor.BN(7500),
     };
+
     const transactionSignature = await program.methods
-      .initialize(metadata.name, metadata.symbol, metadata.uri, bridgeParams)
+      .initialize(metadata, bridgeParams)
       .accounts({
         owner: owner.publicKey,
         mintAccount: mintKeypair.publicKey,

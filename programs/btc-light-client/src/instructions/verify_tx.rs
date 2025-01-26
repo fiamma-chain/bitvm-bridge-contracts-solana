@@ -73,7 +73,9 @@ pub fn verify_transaction(
 
 #[derive(Accounts)]
 pub struct VerifyTransaction<'info> {
+    #[account(mut, seeds = [b"btc_light_client"], bump)]
     pub state: Account<'info, BtcLightClientState>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]

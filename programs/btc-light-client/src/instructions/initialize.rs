@@ -24,9 +24,9 @@ pub fn initialize(
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    #[account(init, payer = payer, space = 8 + BtcLightClientState::SPACE)]
+    #[account(init, payer = payer, space = BtcLightClientState::SPACE, seeds = [b"btc_light_client"], bump)]
     pub state: Account<'info, BtcLightClientState>,
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
-} 
+}

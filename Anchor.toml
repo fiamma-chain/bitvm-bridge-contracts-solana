@@ -5,18 +5,18 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-bitvm_bridge = "2Bg9NHroaYhvb1aPTvxdVd9s1qPZG8W8YAkZYZ7vz5qY"
-btc_light_client = "3HP5LCDhsCpgr5mP9wdJVj2ETg1dUSywJ5Lnh9mUhGa7"
+bitvm_bridge = "7z7f22yoA5aa2bcbxqYqBGx4mqcMegKpiZb2TbK6dxwx"
+btc_light_client = "7t8QEbHg91G8pcJrbLMCQms4MNHiEYz7miSKcy3TQy42"
 
 [programs.localnet]
-bitvm_bridge = "2Bg9NHroaYhvb1aPTvxdVd9s1qPZG8W8YAkZYZ7vz5qY"
-btc_light_client = "3HP5LCDhsCpgr5mP9wdJVj2ETg1dUSywJ5Lnh9mUhGa7"
+bitvm_bridge = "7z7f22yoA5aa2bcbxqYqBGx4mqcMegKpiZb2TbK6dxwx"
+btc_light_client = "7t8QEbHg91G8pcJrbLMCQms4MNHiEYz7miSKcy3TQy42"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "Localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

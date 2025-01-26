@@ -13,8 +13,16 @@ pub struct BtcLightClientState {
 
 impl BtcLightClientState {
     pub const MAX_BLOCK_HASHES: usize = 5000;
-    pub const SPACE: usize =
-        8 + 8 + 4 + 4 + (1 + 32) * Self::MAX_BLOCK_HASHES + 4 + (1 + 32) * 10 + 1 + 8;
+    // ... existing code ...
+    pub const SPACE: usize = 8 +  // account discriminator
+        8 +  // latest_block_height
+        4 +  // latest_block_time
+        4 +  // vec length for block_hashes
+        (8 + 32) * Self::MAX_BLOCK_HASHES +  // block_hashes content
+        4 +  // vec length for period_targets
+        (8 + 32) * 10 +  // period_targets content
+        1 +  // is_testnet
+        8; // min_confirmations
     pub fn add_block_hash(&mut self, height: u64, hash: [u8; 32]) -> Result<()> {
         // if the block hash already exists, update it
         if let Some(item) = self.block_hashes.iter_mut().find(|(h, _)| *h == height) {

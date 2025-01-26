@@ -4,9 +4,10 @@ pub mod errors;
 pub mod events;
 pub mod instructions;
 pub mod state;
+use btc_light_client::instructions::BtcTxProof;
 use instructions::*;
 
-declare_id!("2Bg9NHroaYhvb1aPTvxdVd9s1qPZG8W8YAkZYZ7vz5qY");
+declare_id!("7z7f22yoA5aa2bcbxqYqBGx4mqcMegKpiZb2TbK6dxwx");
 
 #[program]
 pub mod bitvm_bridge {
@@ -21,8 +22,13 @@ pub mod bitvm_bridge {
         initialize::initialize(ctx, token_metadata, bridge_params, btc_light_client)
     }
 
-    pub fn mint(ctx: Context<MintToken>, amount: u64) -> Result<()> {
-        mint::mint_token(ctx, amount)
+    pub fn mint(
+        ctx: Context<MintToken>,
+        amount: u64,
+        block_height: u64,
+        tx_proof: BtcTxProof,
+    ) -> Result<()> {
+        mint::mint_token(ctx, amount, block_height, tx_proof)
     }
 
     pub fn burn(

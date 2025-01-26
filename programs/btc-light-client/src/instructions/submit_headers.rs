@@ -160,7 +160,8 @@ pub fn submit_block_headers(
 
 #[derive(Accounts)]
 pub struct SubmitBlockHeaders<'info> {
-    #[account(mut)]
+    #[account(mut, seeds = [b"btc_light_client"], bump)]
     pub state: Account<'info, BtcLightClientState>,
     pub submitter: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }

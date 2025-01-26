@@ -16,4 +16,10 @@ pub enum BitvmBridgeError {
 
     #[msg("Burn is paused")]
     BurnPaused,
+
+    #[msg("Tx already minted")]
+    TxAlreadyMinted,
+
+    #[msg("Mismatch btc amount")]
+    MismatchBtcAmount,
 }
