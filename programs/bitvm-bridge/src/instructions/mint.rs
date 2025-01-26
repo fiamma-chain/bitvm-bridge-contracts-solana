@@ -22,6 +22,7 @@ pub struct MintToken<'info> {
         associated_token::authority = recipient,
     )]
     // recipient is the owner of the associated token account
+    // This is a custom account type that is used to store the token account data
     pub associated_token_account: Account<'info, TokenAccount>,
 
     #[account(
@@ -50,8 +51,6 @@ pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
         &ctx.accounts.associated_token_account.key()
     );
 
-    let adjusted_amount = amount * 10u64.pow(ctx.accounts.mint_account.decimals as u32);
-
     // Invoke the mint_to instruction on the token program
     mint_to(
         CpiContext::new(
@@ -62,12 +61,12 @@ pub fn mint_token(ctx: Context<MintToken>, amount: u64) -> Result<()> {
                 authority: ctx.accounts.mint_authority.to_account_info(),
             },
         ),
-        adjusted_amount, // Mint tokens, adjust for decimals
+        amount,
     )?;
 
     emit!(MintEvent {
         to: ctx.accounts.recipient.key(),
-        value: adjusted_amount,
+        value: amount,
     });
 
     msg!("Token minted successfully.");

@@ -41,8 +41,6 @@ pub fn burn_token(
         amount >= bridge_state.min_btc_per_burn && amount <= bridge_state.max_btc_per_burn,
         BitvmBridgeError::InvalidPegoutAmount
     );
-    let mint = &ctx.accounts.mint_account;
-    let adjusted_amount = amount * 10u64.pow(mint.decimals as u32);
 
     let cpi_accounts = Burn {
         mint: ctx.accounts.mint_account.to_account_info(),
@@ -52,12 +50,12 @@ pub fn burn_token(
 
     let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
 
-    token::burn(cpi_ctx, adjusted_amount)?;
+    token::burn(cpi_ctx, amount)?;
 
     emit!(BurnEvent {
         from: ctx.accounts.associated_token_account.key(),
         btc_addr: btc_addr,
-        value: adjusted_amount,
+        value: amount,
         operator_id: operator_id,
     });
 

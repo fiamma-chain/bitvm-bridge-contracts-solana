@@ -14,12 +14,11 @@ pub mod bitvm_bridge {
     use super::*;
     pub fn initialize(
         ctx: Context<Initialize>,
-        token_name: String,
-        token_symbol: String,
-        token_uri: String,
+        token_metadata: TokenMetadata,
         bridge_params: BridgeParams,
+        btc_light_client: Pubkey,
     ) -> Result<()> {
-        initialize::initialize(ctx, token_name, token_symbol, token_uri, bridge_params)
+        initialize::initialize(ctx, token_metadata, bridge_params, btc_light_client)
     }
 
     pub fn mint(ctx: Context<MintToken>, amount: u64) -> Result<()> {

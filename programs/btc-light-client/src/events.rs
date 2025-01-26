@@ -20,3 +20,9 @@ pub struct ChainReorg {
     pub old_tip: [u8; 32],
     pub new_tip: [u8; 32],
 }
+
+#[event]
+pub struct NewTotalDifficultySinceRetarget {
+    pub new_height: u64,
+    pub new_work: [u8; 32],
+}

@@ -1,6 +1,6 @@
 use crate::{
     errors::BtcLightClientError,
-    events::{ChainReorg, NewTip},
+    events::{ChainReorg, NewTip, NewTotalDifficultySinceRetarget},
     state::BtcLightClientState,
     utils::{get_work_in_period, mul_in_place},
 };
@@ -122,6 +122,20 @@ pub fn submit_block_headers(
             new_work.gt(&old_work),
             BtcLightClientError::InsufficientChainWork
         );
+        // delete all block hashes above the new height
+        // (in case we just accepted a shorter, heavier chain.)
+        let (_, max_height) = state.get_block_range();
+        if let Some(max_height) = max_height {
+            if max_height > new_height {
+                state
+                    .block_hashes
+                    .retain(|(height, _)| *height <= new_height);
+            }
+        }
+        emit!(NewTotalDifficultySinceRetarget {
+            new_height: new_height,
+            new_work: new_work.to_be_bytes(),
+        });
     } else {
         assert!(new_period == old_period);
         assert!(new_period == parent_period);

@@ -18,6 +18,13 @@ pub struct BridgeParams {
     pub min_btc_per_burn: u64,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize)]
+pub struct TokenMetadata {
+    pub name: String,
+    pub symbol: String,
+    pub uri: String,
+}
+
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut)]
@@ -59,10 +66,9 @@ pub struct Initialize<'info> {
 
 pub fn initialize(
     ctx: Context<Initialize>,
-    token_name: String,
-    token_symbol: String,
-    token_uri: String,
+    token_metadata: TokenMetadata,
     bridge_params: BridgeParams,
+    btc_light_client: Pubkey,
 ) -> Result<()> {
     msg!("Creating metadata account");
 
@@ -82,9 +88,9 @@ pub fn initialize(
             },
         ),
         DataV2 {
-            name: token_name,
-            symbol: token_symbol,
-            uri: token_uri,
+            name: token_metadata.name,
+            symbol: token_metadata.symbol,
+            uri: token_metadata.uri,
             seller_fee_basis_points: 0,
             creators: None,
             collection: None,
@@ -96,6 +102,8 @@ pub fn initialize(
     )?;
 
     ctx.accounts.bridge_state.owner = ctx.accounts.owner.key();
+    ctx.accounts.bridge_state.btc_light_client = btc_light_client;
+    ctx.accounts.bridge_state.mint_account = ctx.accounts.mint_account.key();
     ctx.accounts.bridge_state.max_btc_per_mint = bridge_params.max_btc_per_mint;
     ctx.accounts.bridge_state.min_btc_per_mint = bridge_params.min_btc_per_mint;
     ctx.accounts.bridge_state.max_btc_per_burn = bridge_params.max_btc_per_burn;
