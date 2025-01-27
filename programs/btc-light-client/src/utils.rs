@@ -1,7 +1,4 @@
-use anchor_lang::prelude::*;
-use bitcoin::{hashes::Hash, Work};
-
-use crate::errors::BtcLightClientError;
+use bitcoin::hashes::Hash;
 
 pub fn verify_merkle_proof(
     tx_hash: bitcoin::Txid,
@@ -44,26 +41,4 @@ pub fn mul_in_place(arr: &mut [u8; 32], multiplicator: u32) {
         remainder = val >> 8;
         arr[pos] = byte as u8;
     }
-}
-
-pub fn get_work_in_period(
-    state: &crate::state::BtcLightClientState,
-    period: u64,
-    height: u64,
-) -> Result<Work> {
-    let target_bytes = state.get_period_target(period)?;
-    let target = bitcoin::Target::from_be_bytes(target_bytes);
-    let work_per_block = target.to_work();
-
-    let num_blocks = height - (period * 2016) + 1;
-    require!(
-        num_blocks >= 1 && num_blocks <= 2016,
-        BtcLightClientError::InvalidBlockCount
-    );
-
-    let mut total_work = work_per_block;
-    for _ in 1..num_blocks {
-        total_work = total_work + work_per_block;
-    }
-    Ok(total_work)
 }

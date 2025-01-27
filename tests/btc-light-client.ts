@@ -2,6 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { BtcLightClient } from "../target/types/btc_light_client";
 import { expect } from "chai";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 
 describe("BTC Light Client Mainnet Tests", () => {
     const provider = anchor.AnchorProvider.env();
@@ -176,4 +177,46 @@ describe("BTC Light Client Mainnet Tests", () => {
 //     const tx = new bitcoin.Transaction();
 //     // Add inputs and outputs
 //     return tx.toBuffer();
-// } 
+// }
+
+// 提交区块头
+const headers = createValidHeaders(5, genesisBlock);
+const remainingAccounts = [];
+
+// 添加所有区块哈希账户
+for (let i = 0; i < headers.length; i++) {
+    const height = genesisBlock.height + i;
+    const [blockHashPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("block_hash"), height.toBuffer()],
+        program.programId
+    );
+    remainingAccounts.push({
+        pubkey: blockHashPda,
+        isWritable: true,
+        isSigner: false
+    });
+}
+
+// 添加前一个区块的哈希账户
+const [prevBlockHashPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from("block_hash"), (genesisBlock.height - 1).toBuffer()],
+    program.programId
+);
+remainingAccounts.push({
+    pubkey: prevBlockHashPda,
+    isWritable: false,
+    isSigner: false
+});
+
+// 添加难度目标账户
+// ... 类似的代码添加难度目标相关的账户
+
+await program.methods
+    .submitBlockHeaders(genesisBlock.height, headers)
+    .accounts({
+        state: btcLightClientState,
+        submitter: provider.wallet.publicKey,
+        systemProgram: SystemProgram.programId,
+    })
+    .remainingAccounts(remainingAccounts)
+    .rpc(); 

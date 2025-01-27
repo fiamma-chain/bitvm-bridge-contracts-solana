@@ -1,7 +1,7 @@
 use crate::{
     errors::BtcLightClientError,
     events::TransactionVerified,
-    state::BtcLightClientState,
+    state::{BlockHashEntry, BtcLightClientState},
     utils::{verify_merkle_proof, verify_output_script},
 };
 use anchor_lang::prelude::*;
@@ -13,18 +13,17 @@ pub fn verify_transaction(
     tx_proof: BtcTxProof,
 ) -> Result<()> {
     let state = &ctx.accounts.state;
+    let block_hash_entry = &ctx.accounts.block_hash;
 
     require!(
         state.latest_block_height >= block_height + state.min_confirmations,
         BtcLightClientError::InsufficientConfirmations
     );
 
-    let block_hash = state.get_block_hash(block_height)?;
-
     let header: BlockHeader = deserialize(&tx_proof.block_header)
         .map_err(|_| BtcLightClientError::InvalidHeaderFormat)?;
     require!(
-        header.block_hash().to_byte_array() == block_hash,
+        header.block_hash().to_byte_array() == block_hash_entry.hash,
         BtcLightClientError::BlockHashMismatch
     );
 
@@ -72,9 +71,16 @@ pub fn verify_transaction(
 }
 
 #[derive(Accounts)]
+#[instruction(block_height: u64)]
 pub struct VerifyTransaction<'info> {
-    #[account(mut, seeds = [b"btc_light_client"], bump)]
+    #[account(seeds = [b"btc_light_client"], bump)]
     pub state: Account<'info, BtcLightClientState>,
+
+    #[account(
+        seeds = [b"block_hash", block_height.to_le_bytes().as_ref()],
+        bump
+    )]
+    pub block_hash: Account<'info, BlockHashEntry>,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]

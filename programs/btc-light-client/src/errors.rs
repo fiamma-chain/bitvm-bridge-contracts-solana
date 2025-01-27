@@ -42,4 +42,6 @@ pub enum BtcLightClientError {
     PeriodTargetNotFound,
     #[msg("Invalid difficulty adjustment")]
     InvalidDifficultyAdjustment,
+    #[msg("Invalid PDA account")]
+    InvalidPdaAccount,
 }

@@ -9,12 +9,14 @@ use anchor_spl::{
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
 use btc_light_client::{
-    cpi::accounts::VerifyTransaction, cpi::verify_transaction, instructions::BtcTxProof,
-    program::BtcLightClient, state::BtcLightClientState,
+    cpi::{accounts::VerifyTransaction, verify_transaction},
+    instructions::BtcTxProof,
+    program::BtcLightClient,
+    state::{BlockHashEntry, BtcLightClientState},
 };
 
 #[derive(Accounts)]
-#[instruction(tx_id: [u8; 32])]
+#[instruction(tx_id: [u8; 32], block_height: u64)]
 pub struct MintToken<'info> {
     #[account(
         init_if_needed,
@@ -28,6 +30,10 @@ pub struct MintToken<'info> {
     // BTC Light Client accounts
     #[account(mut, seeds = [b"btc_light_client"], bump)]
     pub btc_light_client_state: Account<'info, BtcLightClientState>,
+
+    #[account(mut, seeds = [b"block_hash", block_height.to_le_bytes().as_ref()], bump)]
+    pub block_hash_account: Account<'info, BlockHashEntry>,
+
     pub btc_light_client_program: Program<'info, BtcLightClient>,
 
     #[account(mut)]
@@ -93,6 +99,7 @@ pub fn mint_token(
             ctx.accounts.btc_light_client_program.to_account_info(),
             VerifyTransaction {
                 state: ctx.accounts.btc_light_client_state.to_account_info(),
+                block_hash: ctx.accounts.block_hash_account.to_account_info(),
             },
         ),
         block_height,
