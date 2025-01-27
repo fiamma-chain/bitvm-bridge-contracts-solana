@@ -26,12 +26,4 @@ impl BtcLightClientState {
         4 +  // latest_block_time
         1 +  // is_testnet
         8; // min_confirmations
-
-    pub fn get_block_hash_pda(height: u64, program_id: &Pubkey) -> (Pubkey, u8) {
-        Pubkey::find_program_address(&[b"block_hash", &height.to_le_bytes()], program_id)
-    }
-
-    pub fn get_period_target_pda(period: u64, program_id: &Pubkey) -> (Pubkey, u8) {
-        Pubkey::find_program_address(&[b"period_target", &period.to_le_bytes()], program_id)
-    }
 }

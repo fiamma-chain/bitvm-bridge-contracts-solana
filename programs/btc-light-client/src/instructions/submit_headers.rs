@@ -2,7 +2,9 @@ use crate::{
     errors::BtcLightClientError,
     events::{ChainReorg, NewTip},
     state::*,
-    utils::mul_in_place,
+    utils::{
+        get_and_verify_block_hash_account, get_and_verify_period_target_account, mul_in_place,
+    },
 };
 use anchor_lang::prelude::*;
 use bitcoin::{
@@ -38,23 +40,13 @@ pub fn submit_block_headers(
         let new_hash = hash.to_byte_array();
 
         // Get or create block hash account
-        let (block_hash_pda, _) =
-            BtcLightClientState::get_block_hash_pda(current_height, ctx.program_id);
-        let block_hash_account = &ctx.remaining_accounts[i + 1];
-        require!(
-            block_hash_account.key() == block_hash_pda,
-            BtcLightClientError::InvalidPdaAccount
-        );
+        let block_hash_entry = get_and_verify_block_hash_account(
+            &ctx.remaining_accounts[i + 1],
+            current_height,
+            ctx.program_id,
+        )?;
 
-        let old_hash = if let Ok(data) =
-            BlockHashEntry::try_deserialize(&mut &block_hash_account.data.borrow()[..])
-        {
-            data.hash
-        } else {
-            [0; 32]
-        };
-
-        if old_hash != [0; 32] && old_hash != new_hash {
+        if block_hash_entry.hash != [0; 32] && block_hash_entry.hash != new_hash {
             num_reorged += 1;
         }
 
@@ -63,24 +55,21 @@ pub fn submit_block_headers(
             height: current_height,
             hash: new_hash,
         };
-        block_hash_entry.serialize(&mut &mut block_hash_account.data.borrow_mut()[..])?;
+        block_hash_entry
+            .serialize(&mut &mut ctx.remaining_accounts[i + 1].data.borrow_mut()[..])?;
 
         // Verify previous block hash
         let expected_prev_hash = if i == 0 {
-            let (prev_block_hash_pda, _) =
-                BtcLightClientState::get_block_hash_pda(block_height - 1, ctx.program_id);
-            let prev_block_hash_account = &ctx.remaining_accounts[0];
+            let prev_block_hash_entry = get_and_verify_block_hash_account(
+                &ctx.remaining_accounts[0],
+                block_height - 1,
+                ctx.program_id,
+            )?;
             require!(
-                prev_block_hash_account.key() == prev_block_hash_pda,
-                BtcLightClientError::InvalidPdaAccount
-            );
-            let prev_entry =
-                BlockHashEntry::try_deserialize(&mut &prev_block_hash_account.data.borrow()[..])?;
-            require!(
-                prev_entry.hash != [0; 32],
+                prev_block_hash_entry.hash != [0; 32],
                 BtcLightClientError::BlockNotFound
             );
-            BlockHash::from_byte_array(prev_entry.hash)
+            BlockHash::from_byte_array(prev_block_hash_entry.hash)
         } else {
             headers[i - 1].block_hash()
         };
@@ -102,19 +91,14 @@ pub fn submit_block_headers(
 
         if current_height % 2016 == 0 {
             // Get previous period target
-            let (prev_period_target_pda, _) =
-                BtcLightClientState::get_period_target_pda(current_period - 1, ctx.program_id);
-            let prev_period_target_account = &ctx.remaining_accounts[headers.len() + 1];
-            require!(
-                prev_period_target_account.key() == prev_period_target_pda,
-                BtcLightClientError::InvalidPdaAccount
-            );
-            let prev_period_entry = PeriodTargetEntry::try_deserialize(
-                &mut &prev_period_target_account.data.borrow()[..],
+            let period_target_entry = get_and_verify_period_target_account(
+                &ctx.remaining_accounts[headers.len() + 1],
+                current_period - 1,
+                ctx.program_id,
             )?;
 
             if !state.is_testnet {
-                let mut t = prev_period_entry.target;
+                let mut t = period_target_entry.target;
                 mul_in_place(&mut t, 4);
                 require!(
                     new_target < t,
@@ -123,29 +107,19 @@ pub fn submit_block_headers(
             }
 
             // Create new period target account
-            let (period_target_pda, _) =
-                BtcLightClientState::get_period_target_pda(current_period, ctx.program_id);
-            let period_target_account = &ctx.remaining_accounts[headers.len() + 2];
-            require!(
-                period_target_account.key() == period_target_pda,
-                BtcLightClientError::InvalidPdaAccount
-            );
-
             let period_target_entry = PeriodTargetEntry {
                 period: current_period,
                 target: new_target,
             };
-            period_target_entry.serialize(&mut &mut period_target_account.data.borrow_mut()[..])?;
+            period_target_entry.serialize(
+                &mut &mut ctx.remaining_accounts[headers.len() + 2].data.borrow_mut()[..],
+            )?;
         } else if !state.is_testnet {
-            let (period_target_pda, _) =
-                BtcLightClientState::get_period_target_pda(current_period, ctx.program_id);
-            let period_target_account = &ctx.remaining_accounts[headers.len() + 1];
-            require!(
-                period_target_account.key() == period_target_pda,
-                BtcLightClientError::InvalidPdaAccount
-            );
-            let period_target_entry =
-                PeriodTargetEntry::try_deserialize(&mut &period_target_account.data.borrow()[..])?;
+            let period_target_entry = get_and_verify_period_target_account(
+                &ctx.remaining_accounts[headers.len() + 1],
+                current_period,
+                ctx.program_id,
+            )?;
             require!(
                 new_target == period_target_entry.target,
                 BtcLightClientError::InvalidDifficultyAdjustment
@@ -154,21 +128,18 @@ pub fn submit_block_headers(
     }
 
     // Get old tip
-    let (old_tip_pda, _) = BtcLightClientState::get_block_hash_pda(block_height, ctx.program_id);
-    let old_tip_account = &ctx.remaining_accounts[1]; // first block hash account
-    require!(
-        old_tip_account.key() == old_tip_pda,
-        BtcLightClientError::InvalidPdaAccount
-    );
-    let old_tip_entry = BlockHashEntry::try_deserialize(&mut &old_tip_account.data.borrow()[..])?;
-    let old_tip = old_tip_entry.hash;
+    let old_tip_entry = get_and_verify_block_hash_account(
+        &ctx.remaining_accounts[1],
+        block_height,
+        ctx.program_id,
+    )?;
 
     let new_tip = headers.last().unwrap().block_hash().to_byte_array();
 
     if num_reorged > 0 {
         emit!(ChainReorg {
             reorg_count: num_reorged,
-            old_tip,
+            old_tip: old_tip_entry.hash,
             new_tip,
         });
     }
@@ -186,7 +157,6 @@ pub fn submit_block_headers(
 }
 
 #[derive(Accounts)]
-#[instruction(block_height: u64, headers: Vec<u8>)]
 pub struct SubmitBlockHeaders<'info> {
     #[account(mut, seeds = [b"btc_light_client"], bump)]
     pub state: Account<'info, BtcLightClientState>,
