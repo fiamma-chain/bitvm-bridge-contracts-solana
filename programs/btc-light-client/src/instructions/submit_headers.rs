@@ -163,5 +163,4 @@ pub struct SubmitBlockHeaders<'info> {
     #[account(mut, seeds = [b"btc_light_client"], bump)]
     pub state: Account<'info, BtcLightClientState>,
     pub submitter: Signer<'info>,
-    pub system_program: Program<'info, System>,
 }

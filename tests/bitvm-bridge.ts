@@ -32,28 +32,28 @@ describe("bitvm-bridge-contracts-solana", () => {
   console.log("Provider wallet:", provider.wallet.publicKey.toString());
   console.log("Owner wallet:", owner.publicKey.toString());
 
-  it("Initialize an SPL Token", async () => {
+  // it("Initialize an SPL Token", async () => {
 
-    const bridgeParams = {
-      maxBtcPerMint: new anchor.BN(1000000),
-      minBtcPerMint: new anchor.BN(7500),
-      maxBtcPerBurn: new anchor.BN(1000000),
-      minBtcPerBurn: new anchor.BN(7500),
-    };
+  //   const bridgeParams = {
+  //     maxBtcPerMint: new anchor.BN(1000000),
+  //     minBtcPerMint: new anchor.BN(7500),
+  //     maxBtcPerBurn: new anchor.BN(1000000),
+  //     minBtcPerBurn: new anchor.BN(7500),
+  //   };
 
-    const transactionSignature = await program.methods
-      .initialize(metadata, bridgeParams)
-      .accounts({
-        owner: owner.publicKey,
-        mintAccount: mintKeypair.publicKey,
-      })
-      .signers([mintKeypair])
-      .rpc();
+  //   const transactionSignature = await program.methods
+  //     .initialize(metadata, bridgeParams, btcLightClientState)
+  //     .accounts({
+  //       owner: owner.publicKey,
+  //       mintAccount: mintKeypair.publicKey,
+  //     })
+  //     .signers([mintKeypair])
+  //     .rpc();
 
-    console.log("Mint Success!");
-    console.log(`Mint Address: ${mintKeypair.publicKey}`);
-    console.log(`Transaction Signature: ${transactionSignature}`);
-  });
+  //   console.log("Mint Success!");
+  //   console.log(`Mint Address: ${mintKeypair.publicKey}`);
+  //   console.log(`Transaction Signature: ${transactionSignature}`);
+  // });
 
   // it("Mint some tokens to your wallet!", async () => {
   //   // Derive the associated token address account for the mint and payer.

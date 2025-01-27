@@ -2,7 +2,6 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { BtcLightClient } from "../target/types/btc_light_client";
 import { expect } from "chai";
-import { bitcoin, networks } from "bitcoinjs-lib";
 
 describe("BTC Light Client Mainnet Tests", () => {
     const provider = anchor.AnchorProvider.env();
@@ -37,9 +36,7 @@ describe("BTC Light Client Mainnet Tests", () => {
                 false // testnet
             )
             .accounts({
-                btcLightClientState,
                 payer: provider.wallet.publicKey,
-                systemProgram: anchor.web3.SystemProgram.programId,
             })
             .rpc();
     });
