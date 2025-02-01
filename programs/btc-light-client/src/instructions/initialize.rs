@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 pub fn initialize(
     ctx: Context<Initialize>,
     block_height: u64,
+    period: u64,
     block_hash: [u8; 32],
     block_time: u32,
     expected_target: [u8; 32],
@@ -21,14 +22,14 @@ pub fn initialize(
     block_hash_entry.height = block_height;
     block_hash_entry.hash = block_hash;
 
-    period_target.period = block_height / 2016;
+    period_target.period = period;
     period_target.target = expected_target;
 
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(block_height: u64)]
+#[instruction(block_height: u64, period: u64)]
 pub struct Initialize<'info> {
     #[account(
         init,
@@ -42,17 +43,16 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = payer,
-        space = 8 + 8 + 32,  // discriminator + height + hash
+        space = 8 + 8 + 32,
         seeds = [b"block_hash".as_ref(), block_height.to_le_bytes().as_ref()],
         bump
     )]
     pub block_hash: Account<'info, BlockHashEntry>,
-
     #[account(
         init,
         payer = payer,
-        space = 8 + 8 + 32,  // discriminator + period + target
-        seeds = [b"period_target".as_ref(), (block_height / 2016).to_le_bytes().as_ref()],
+        space = 8 + 8 + 32,
+        seeds = ["period_target".as_ref(), period.to_le_bytes().as_ref()],
         bump
     )]
     pub period_target: Account<'info, PeriodTargetEntry>,

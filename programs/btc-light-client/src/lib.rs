@@ -8,7 +8,7 @@ pub mod utils;
 
 use instructions::*;
 
-declare_id!("7t8QEbHg91G8pcJrbLMCQms4MNHiEYz7miSKcy3TQy42");
+declare_id!("Dx4UjZ5SgzJLN8osxbaVkANoQENaT8dHzRmiZoxfr8ka");
 
 #[program]
 pub mod btc_light_client {
@@ -18,6 +18,7 @@ pub mod btc_light_client {
     pub fn initialize(
         ctx: Context<Initialize>,
         block_height: u64,
+        period: u64,
         block_hash: [u8; 32],
         block_time: u32,
         expected_target: [u8; 32],
@@ -26,6 +27,7 @@ pub mod btc_light_client {
         instructions::initialize::initialize(
             ctx,
             block_height,
+            period,
             block_hash,
             block_time,
             expected_target,
