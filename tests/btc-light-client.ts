@@ -3,13 +3,14 @@ import { Program } from "@coral-xyz/anchor";
 import { BtcLightClient } from "../target/types/btc_light_client";
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
+import { createBlockHashAccount, createPeriodTargetAccount } from "./utils";
 
 describe("BTC Light Client Tests", () => {
     const provider = anchor.AnchorProvider.env();
     anchor.setProvider(provider);
     const program = anchor.workspace.BtcLightClient as Program<BtcLightClient>;
 
-    // Test data
+    //start at block #717694, two  blocks before retarget
     const genesisBlock = {
         height: 717694,
         hash: Buffer.from("0000000000000000000b3dd6d6062aa8b7eb99d033fe29e507e0a0d81b5eaeed", "hex"),
@@ -49,60 +50,95 @@ describe("BTC Light Client Tests", () => {
         expect(state.isTestnet).to.be.false;
     });
 
-    // it("Submit block headers", async () => {
-    //     const headers = [
-    //         // ... block header data
-    //     ];
-    //     const blockHeight = genesisBlock.height + 1;
+    it("Submit block headers", async () => {
+        // Block #717695 header data,  
+        // all bitcoin header values are little-endian:
+        const block717695 = Buffer.from(
+            "04002020" +          // 4 bytes (version)
+            "edae5e1bd8a0e007e529fe33d099ebb7a82a06d6d63d0b000000000000000000" +  // 32 bytes (prev hash)
+            "f8aec519bcd878c9713dc8153a72fd62e3667c5ade70d8d0415584b8528d79ca" +  // 32 bytes (merkle root)
+            "0b40d961" +          // 4 bytes (time)
+            "ab980b17" +          // 4 bytes (bits)
+            "3dcc4d5a", "hex");          // 4 bytes (nonce)
+        ;
 
-    //     const remainingAccounts = [];
+        // Block #717696 header data
+        // all bitcoin header values are little-endian:
+        const block717696 = Buffer.from(
+            "00004020" + // version
+            "9acaa5d26d392ace656c2428c991b0a3d3d773845a1300000000000000000000" + // parent hash
+            "aa8e225b1f3ea6c4b7afd5aa1cecf691a8beaa7fa1e579ce240e4a62b5ac8ecc" + // merkle root
+            "2141d961" + // time
+            "8b8c0b17" + // bits
+            "0d5c05bb", // nonce
+            "hex"
+        );
 
-    //     // 1. Add previous block hash account
-    //     const [prevBlockHashPda] = PublicKey.findProgramAddressSync(
-    //         [Buffer.from("block_hash"), new anchor.BN(blockHeight - 1).toBuffer('le', 8)],
-    //         program.programId
-    //     );
-    //     remainingAccounts.push({
-    //         pubkey: prevBlockHashPda,
-    //         isWritable: false,
-    //         isSigner: false
-    //     });
+        const headers = [block717695, block717696];
 
-    //     // 2. Add current block hash accounts
-    //     for (let i = 0; i < headers.length; i++) {
-    //         const [blockHashPda] = PublicKey.findProgramAddressSync(
-    //             [Buffer.from("block_hash"), new anchor.BN(blockHeight + i).toBuffer('le', 8)],
-    //             program.programId
-    //         );
-    //         remainingAccounts.push({
-    //             pubkey: blockHashPda,
-    //             isWritable: true,
-    //             isSigner: false
-    //         });
-    //     }
+        const blockHeight = genesisBlock.height + 1; // 717695
 
-    //     // 3. Add difficulty target account
-    //     const currentPeriod = Math.floor(blockHeight / 2016);
-    //     const [currentPeriodTargetPda] = PublicKey.findProgramAddressSync(
-    //         [Buffer.from("period_target"), new anchor.BN(currentPeriod).toBuffer('le', 8)],
-    //         program.programId
-    //     );
-    //     remainingAccounts.push({
-    //         pubkey: currentPeriodTargetPda,
-    //         isWritable: false,
-    //         isSigner: false
-    //     });
+        const remainingAccounts = [];
 
-    //     await program.methods
-    //         .submitBlockHeaders(new anchor.BN(blockHeight), headers)
-    //         .accounts({
-    //             state: btcLightClientState,
-    //             submitter: provider.wallet.publicKey,
-    //             systemProgram: anchor.web3.SystemProgram.programId,
-    //         })
-    //         .remainingAccounts(remainingAccounts)
-    //         .rpc();
-    // });
+        // 1. Add previous block hash account (717694)
+        const prevBlockHashPda = await createBlockHashAccount(
+            provider,
+            program.programId,
+            blockHeight - 1
+        );
+
+        remainingAccounts.push({
+            pubkey: prevBlockHashPda,
+            isWritable: false,
+            isSigner: false
+        });
+
+        // 2. Add current block hash accounts (717695, 717696)
+        for (let i = 0; i < headers.length; i++) {
+            const blockHashPda = await createBlockHashAccount(
+                provider,
+                program.programId,
+                blockHeight + i
+            );
+            remainingAccounts.push({
+                pubkey: blockHashPda,
+                isWritable: true,
+                isSigner: false
+            });
+        }
+
+        // 3. Add difficulty target account
+        const currentPeriod = Math.floor(blockHeight / 2016);
+        const currentPeriodTargetPda = await createPeriodTargetAccount(
+            provider,
+            program.programId,
+            currentPeriod
+        );
+        remainingAccounts.push({
+            pubkey: currentPeriodTargetPda,
+            isWritable: false,
+            isSigner: false
+        });
+        try {
+            await program.methods
+                .submitBlockHeaders(
+                    new anchor.BN(blockHeight),
+                    Buffer.concat(headers)
+                )
+                .accounts({
+                    submitter: provider.wallet.publicKey,
+                })
+                .remainingAccounts(remainingAccounts)
+                .rpc();
+        } catch (e) {
+            console.log(e);
+        }
+
+        // Verify the state after submission
+        const state = await program.account.btcLightClientState.fetch(btcLightClientState);
+        expect(state.latestBlockHeight.toString()).to.equal("717696");
+        expect(state.latestBlockTime).to.equal(1641627937); // From block 717696
+    });
 
     // it("Verify transaction", async () => {
     //     const blockHeight = genesisBlock.height + 1;

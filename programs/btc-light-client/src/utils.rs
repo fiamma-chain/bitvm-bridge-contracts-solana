@@ -67,7 +67,7 @@ pub fn get_and_verify_block_hash_account<'info>(
     );
 
     BlockHashEntry::try_deserialize(&mut &account_info.data.borrow()[..])
-        .map_err(|_| error!(BtcLightClientError::InvalidPdaAccount))
+        .map_err(|_| error!(BtcLightClientError::DeserializaBlockHashPDA))
 }
 
 pub fn get_and_verify_period_target_account<'info>(
@@ -83,5 +83,5 @@ pub fn get_and_verify_period_target_account<'info>(
     );
 
     PeriodTargetEntry::try_deserialize(&mut &account_info.data.borrow()[..])
-        .map_err(|_| error!(BtcLightClientError::InvalidPdaAccount))
+        .map_err(|_| error!(BtcLightClientError::DeserializaPeriodTargetPDA))
 }

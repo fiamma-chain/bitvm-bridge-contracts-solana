@@ -44,4 +44,8 @@ pub enum BtcLightClientError {
     InvalidDifficultyAdjustment,
     #[msg("Invalid PDA account")]
     InvalidPdaAccount,
+    #[msg("Deserialization Block Hash PDA error")]
+    DeserializaBlockHashPDA,
+    #[msg("Deserialization Period Target PDA error")]
+    DeserializaPeriodTargetPDA,
 }

@@ -17,9 +17,13 @@ pub fn submit_block_headers(
     block_height: u64,
     headers: Vec<u8>,
 ) -> Result<()> {
+    let headers: Vec<BlockHeader> = headers
+        .chunks(80)
+        .map(|chunk| deserialize(chunk))
+        .collect::<std::result::Result<_, _>>()
+        .map_err(|_| BtcLightClientError::InvalidHeaderLength)?;
+
     let state = &mut ctx.accounts.state;
-    let headers: Vec<BlockHeader> =
-        deserialize(&headers).map_err(|_| BtcLightClientError::InvalidHeaderLength)?;
 
     require!(!headers.is_empty(), BtcLightClientError::NoHeaders);
 
