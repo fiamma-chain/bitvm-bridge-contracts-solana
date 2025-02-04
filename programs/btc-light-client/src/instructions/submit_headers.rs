@@ -22,6 +22,11 @@ pub fn submit_block_headers(
 
     require!(!headers.is_empty(), BtcLightClientError::NoHeaders);
 
+    require!(
+        ctx.remaining_accounts.len() >= headers.len(),
+        BtcLightClientError::InvalidAccountNumber
+    );
+
     let old_period = state.latest_block_height / 2016;
     let new_height = block_height + headers.len() as u64 - 1;
     let new_period = new_height / 2016;
@@ -58,7 +63,7 @@ pub fn submit_block_headers(
 
         // Verify previous block hash
         let expected_prev_hash = if i == 0 {
-            state.lasest_block_hash
+            state.latest_block_hash
         } else {
             headers[i - 1].block_hash().to_byte_array()
         };
@@ -86,17 +91,17 @@ pub fn submit_block_headers(
 
         if current_height % 2016 == 0 {
             if !state.is_testnet {
-                let mut prev_target = state.lastet_peroid_target;
+                let mut prev_target = state.latest_peroid_target;
                 mul_in_place(&mut prev_target, 4);
                 require!(
                     new_target < prev_target,
                     BtcLightClientError::InvalidDifficultyAdjustment
                 );
             }
-            state.lastet_peroid_target = new_target;
+            state.latest_peroid_target = new_target;
         } else if !state.is_testnet {
             require!(
-                new_target == state.lastet_peroid_target,
+                new_target == state.latest_peroid_target,
                 BtcLightClientError::InvalidDifficultyAdjustment
             );
         }
@@ -106,13 +111,13 @@ pub fn submit_block_headers(
     if num_reorged > 0 {
         emit!(ChainReorg {
             reorg_count: num_reorged,
-            old_tip: state.lasest_block_hash,
+            old_tip: state.latest_block_hash,
             new_tip,
         });
     }
 
     state.latest_block_height = new_height;
-    state.lasest_block_hash = new_tip;
+    state.latest_block_hash = new_tip;
     state.latest_block_time = headers.last().unwrap().time;
 
     emit!(NewTip {

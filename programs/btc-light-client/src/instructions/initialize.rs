@@ -12,9 +12,9 @@ pub fn initialize(
     let state = &mut ctx.accounts.state;
 
     state.latest_block_height = block_height;
-    state.lasest_block_hash = block_hash;
+    state.latest_block_hash = block_hash;
     state.latest_block_time = block_time;
-    state.lastet_peroid_target = expected_target;
+    state.latest_peroid_target = expected_target;
     state.is_testnet = is_testnet;
     state.min_confirmations = 1;
 
