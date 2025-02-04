@@ -18,7 +18,6 @@ pub mod btc_light_client {
     pub fn initialize(
         ctx: Context<Initialize>,
         block_height: u64,
-        period: u64,
         block_hash: [u8; 32],
         block_time: u32,
         expected_target: [u8; 32],
@@ -27,7 +26,6 @@ pub mod btc_light_client {
         instructions::initialize::initialize(
             ctx,
             block_height,
-            period,
             block_hash,
             block_time,
             expected_target,

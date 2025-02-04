@@ -4,32 +4,29 @@ use anchor_lang::prelude::*;
 pub fn initialize(
     ctx: Context<Initialize>,
     block_height: u64,
-    period: u64,
     block_hash: [u8; 32],
     block_time: u32,
     expected_target: [u8; 32],
     is_testnet: bool,
 ) -> Result<()> {
     let state = &mut ctx.accounts.state;
-    let block_hash_entry = &mut ctx.accounts.block_hash;
-    let period_target = &mut ctx.accounts.period_target;
 
     state.latest_block_height = block_height;
+    state.lasest_block_hash = block_hash;
     state.latest_block_time = block_time;
+    state.lastet_peroid_target = expected_target;
     state.is_testnet = is_testnet;
     state.min_confirmations = 1;
 
+    let block_hash_entry = &mut ctx.accounts.block_hash;
     block_hash_entry.height = block_height;
     block_hash_entry.hash = block_hash;
-
-    period_target.period = period;
-    period_target.target = expected_target;
 
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(block_height: u64, period: u64)]
+#[instruction(block_height: u64)]
 pub struct Initialize<'info> {
     #[account(
         init,
@@ -48,15 +45,6 @@ pub struct Initialize<'info> {
         bump
     )]
     pub block_hash: Account<'info, BlockHashEntry>,
-    #[account(
-        init,
-        payer = payer,
-        space = 8 + 8 + 32,
-        seeds = ["period_target".as_ref(), period.to_le_bytes().as_ref()],
-        bump
-    )]
-    pub period_target: Account<'info, PeriodTargetEntry>,
-
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
