@@ -8,7 +8,7 @@ pub mod utils;
 
 use instructions::*;
 
-declare_id!("Dx4UjZ5SgzJLN8osxbaVkANoQENaT8dHzRmiZoxfr8ka");
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
 pub mod btc_light_client {
@@ -35,13 +35,21 @@ pub mod btc_light_client {
         )
     }
 
+    pub fn create_block_hash_account(
+        ctx: Context<CreateBlockHashAccount>,
+        height: u64,
+        block_hash: [u8; 32],
+    ) -> Result<()> {
+        instructions::create_block_hash_account(ctx, height, block_hash)
+    }
+
     // Submit new block headers
     pub fn submit_block_headers(
         ctx: Context<SubmitBlockHeaders>,
         block_height: u64,
         headers: Vec<u8>,
     ) -> Result<()> {
-        instructions::submit_headers::submit_block_headers(ctx, block_height, headers)
+        instructions::submit_block_headers(ctx, block_height, headers)
     }
 
     // Verify Bitcoin transaction

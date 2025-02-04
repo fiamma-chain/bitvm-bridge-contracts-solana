@@ -1,5 +1,5 @@
 use crate::errors::BtcLightClientError;
-use crate::state::{BlockHashEntry, PeriodTargetEntry};
+use crate::state::BlockHashEntry;
 use anchor_lang::prelude::*;
 use bitcoin::hashes::Hash;
 
@@ -50,10 +50,6 @@ fn get_block_hash_pda(height: u64, program_id: &Pubkey) -> (Pubkey, u8) {
     Pubkey::find_program_address(&[b"block_hash", &height.to_le_bytes()], program_id)
 }
 
-fn get_period_target_pda(period: u64, program_id: &Pubkey) -> (Pubkey, u8) {
-    Pubkey::find_program_address(&[b"period_target", &period.to_le_bytes()], program_id)
-}
-
 pub fn get_and_verify_block_hash_account<'info>(
     account_info: &AccountInfo<'info>,
     height: u64,
@@ -67,21 +63,5 @@ pub fn get_and_verify_block_hash_account<'info>(
     );
 
     BlockHashEntry::try_deserialize(&mut &account_info.data.borrow()[..])
-        .map_err(|_| error!(BtcLightClientError::DeserializaBlockHashPDA))
-}
-
-pub fn get_and_verify_period_target_account<'info>(
-    account_info: &AccountInfo<'info>,
-    period: u64,
-    program_id: &Pubkey,
-) -> Result<PeriodTargetEntry> {
-    let (pda, _) = get_period_target_pda(period, program_id);
-
-    require!(
-        account_info.key() == pda,
-        BtcLightClientError::InvalidPdaAccount
-    );
-
-    PeriodTargetEntry::try_deserialize(&mut &account_info.data.borrow()[..])
-        .map_err(|_| error!(BtcLightClientError::DeserializaPeriodTargetPDA))
+        .map_err(|_| error!(BtcLightClientError::DeserializationError))
 }

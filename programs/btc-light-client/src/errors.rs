@@ -12,6 +12,8 @@ pub enum BtcLightClientError {
     InvalidProofOfWork,
     #[msg("Invalid previous block hash")]
     InvalidPrevHash,
+    #[msg("Parent block not yet submitted")]
+    ParentBlockNotYetSubmitted,
     #[msg("Block not found")]
     BlockNotFound,
     #[msg("Invalid header format")]
@@ -44,8 +46,6 @@ pub enum BtcLightClientError {
     InvalidDifficultyAdjustment,
     #[msg("Invalid PDA account")]
     InvalidPdaAccount,
-    #[msg("Deserialization Block Hash PDA error")]
-    DeserializaBlockHashPDA,
-    #[msg("Deserialization Period Target PDA error")]
-    DeserializaPeriodTargetPDA,
+    #[msg("Deserialization PDA Account error")]
+    DeserializationError,
 }

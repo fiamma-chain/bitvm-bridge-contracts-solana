@@ -3,7 +3,9 @@ use anchor_lang::prelude::*;
 #[account]
 pub struct BtcLightClientState {
     pub latest_block_height: u64,
+    pub lasest_block_hash: [u8; 32],
     pub latest_block_time: u32,
+    pub lastet_peroid_target: [u8; 32],
     pub is_testnet: bool,
     pub min_confirmations: u64,
 }

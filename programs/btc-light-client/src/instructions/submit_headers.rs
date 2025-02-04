@@ -2,15 +2,10 @@ use crate::{
     errors::BtcLightClientError,
     events::{ChainReorg, NewTip},
     state::*,
-    utils::{
-        get_and_verify_block_hash_account, get_and_verify_period_target_account, mul_in_place,
-    },
+    utils::{get_and_verify_block_hash_account, mul_in_place},
 };
 use anchor_lang::prelude::*;
-use bitcoin::{
-    block::Header as BlockHeader, consensus::encode::deserialize, hash_types::BlockHash,
-    hashes::Hash,
-};
+use bitcoin::{block::Header as BlockHeader, consensus::encode::deserialize, hashes::Hash};
 
 pub fn submit_block_headers(
     ctx: Context<SubmitBlockHeaders>,
@@ -45,7 +40,7 @@ pub fn submit_block_headers(
 
         // Get or create block hash account
         let block_hash_entry = get_and_verify_block_hash_account(
-            &ctx.remaining_accounts[i + 1],
+            &ctx.remaining_accounts[i],
             current_height,
             ctx.program_id,
         )?;
@@ -59,29 +54,26 @@ pub fn submit_block_headers(
             height: current_height,
             hash: new_hash,
         };
-        block_hash_entry
-            .serialize(&mut &mut ctx.remaining_accounts[i + 1].data.borrow_mut()[..])?;
+        block_hash_entry.serialize(&mut &mut ctx.remaining_accounts[i].data.borrow_mut()[..])?;
 
         // Verify previous block hash
         let expected_prev_hash = if i == 0 {
-            let prev_block_hash_entry = get_and_verify_block_hash_account(
-                &ctx.remaining_accounts[0],
-                block_height - 1,
-                ctx.program_id,
-            )?;
-            require!(
-                prev_block_hash_entry.hash != [0; 32],
-                BtcLightClientError::BlockNotFound
-            );
-            BlockHash::from_byte_array(prev_block_hash_entry.hash)
+            state.lasest_block_hash
         } else {
-            headers[i - 1].block_hash()
+            headers[i - 1].block_hash().to_byte_array()
         };
 
         require!(
-            header.prev_blockhash == expected_prev_hash,
-            BtcLightClientError::InvalidPrevHash
+            expected_prev_hash != [0; 32],
+            BtcLightClientError::ParentBlockNotYetSubmitted
         );
+
+        if num_reorged == 0 {
+            require!(
+                header.prev_blockhash.to_byte_array() == expected_prev_hash,
+                BtcLightClientError::InvalidPrevHash
+            );
+        }
 
         // Verify PoW and difficulty
         let target = header.target();
@@ -90,65 +82,37 @@ pub fn submit_block_headers(
             BtcLightClientError::InvalidProofOfWork
         );
 
-        let current_period = current_height / 2016;
         let new_target = header.target().to_be_bytes();
 
         if current_height % 2016 == 0 {
-            // Get previous period target
-            let period_target_entry = get_and_verify_period_target_account(
-                &ctx.remaining_accounts[headers.len() + 1],
-                current_period - 1,
-                ctx.program_id,
-            )?;
-
             if !state.is_testnet {
-                let mut t = period_target_entry.target;
-                mul_in_place(&mut t, 4);
+                let mut prev_target = state.lastet_peroid_target;
+                mul_in_place(&mut prev_target, 4);
                 require!(
-                    new_target < t,
+                    new_target < prev_target,
                     BtcLightClientError::InvalidDifficultyAdjustment
                 );
             }
-
-            // Create new period target account
-            let period_target_entry = PeriodTargetEntry {
-                period: current_period,
-                target: new_target,
-            };
-            period_target_entry.serialize(
-                &mut &mut ctx.remaining_accounts[headers.len() + 2].data.borrow_mut()[..],
-            )?;
+            state.lastet_peroid_target = new_target;
         } else if !state.is_testnet {
-            let period_target_entry = get_and_verify_period_target_account(
-                &ctx.remaining_accounts[headers.len() + 1],
-                current_period,
-                ctx.program_id,
-            )?;
             require!(
-                new_target == period_target_entry.target,
+                new_target == state.lastet_peroid_target,
                 BtcLightClientError::InvalidDifficultyAdjustment
             );
         }
     }
 
-    // Get old tip
-    let old_tip_entry = get_and_verify_block_hash_account(
-        &ctx.remaining_accounts[1],
-        block_height,
-        ctx.program_id,
-    )?;
-
     let new_tip = headers.last().unwrap().block_hash().to_byte_array();
-
     if num_reorged > 0 {
         emit!(ChainReorg {
             reorg_count: num_reorged,
-            old_tip: old_tip_entry.hash,
+            old_tip: state.lasest_block_hash,
             new_tip,
         });
     }
 
     state.latest_block_height = new_height;
+    state.lasest_block_hash = new_tip;
     state.latest_block_time = headers.last().unwrap().time;
 
     emit!(NewTip {
