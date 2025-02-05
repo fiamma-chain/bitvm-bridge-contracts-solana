@@ -2,8 +2,8 @@ use anchor_lang::prelude::*;
 
 #[error_code]
 pub enum BtcLightClientError {
-    #[msg("Invalid block header length")]
-    InvalidHeaderLength,
+    #[msg("Invalid block header")]
+    InvalidHeader,
     #[msg("Invalid account number")]
     InvalidAccountNumber,
     #[msg("No headers provided")]

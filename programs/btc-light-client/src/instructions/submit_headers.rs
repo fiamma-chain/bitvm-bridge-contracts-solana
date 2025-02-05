@@ -16,14 +16,14 @@ pub fn submit_block_headers(
         .chunks(80)
         .map(|chunk| deserialize(chunk))
         .collect::<std::result::Result<_, _>>()
-        .map_err(|_| BtcLightClientError::InvalidHeaderLength)?;
+        .map_err(|_| BtcLightClientError::InvalidHeader)?;
 
     let state = &mut ctx.accounts.state;
 
     require!(!headers.is_empty(), BtcLightClientError::NoHeaders);
 
     require!(
-        ctx.remaining_accounts.len() >= headers.len(),
+        ctx.remaining_accounts.len() == headers.len(),
         BtcLightClientError::InvalidAccountNumber
     );
 
