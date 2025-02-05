@@ -3,7 +3,7 @@ import { Program } from "@coral-xyz/anchor";
 import { BtcLightClient } from "../target/types/btc_light_client";
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
-import { createBlockHashAccount, createPeriodTargetAccount } from "./utils";
+
 
 describe("BTC Light Client Tests", () => {
     const provider = anchor.AnchorProvider.env();
@@ -13,7 +13,7 @@ describe("BTC Light Client Tests", () => {
     //start at block #717694, two  blocks before retarget
     const genesisBlock = {
         height: 717694,
-        hash: Buffer.from("0000000000000000000b3dd6d6062aa8b7eb99d033fe29e507e0a0d81b5eaeed", "hex"),
+        hash: Buffer.from("edae5e1bd8a0e007e529fe33d099ebb7a82a06d6d63d0b000000000000000000", "hex"),
         time: 1641627092,
         target: Buffer.from("0000000000000000000B98AB0000000000000000000000000000000000000000", "hex"),
     };
@@ -30,11 +30,9 @@ describe("BTC Light Client Tests", () => {
     });
 
     it("Initialize state", async () => {
-        const initialPeriod = Math.floor(genesisBlock.height / 2016);
         await program.methods
             .initialize(
                 new anchor.BN(genesisBlock.height),
-                new anchor.BN(initialPeriod),
                 Array.from(genesisBlock.hash),
                 genesisBlock.time,
                 Array.from(genesisBlock.target),
@@ -59,12 +57,13 @@ describe("BTC Light Client Tests", () => {
             "f8aec519bcd878c9713dc8153a72fd62e3667c5ade70d8d0415584b8528d79ca" +  // 32 bytes (merkle root)
             "0b40d961" +          // 4 bytes (time)
             "ab980b17" +          // 4 bytes (bits)
-            "3dcc4d5a", "hex");   // 4 bytes (nonce)
+            "3dcc4d5a",
+            "hex");   // 4 bytes (nonce)
 
         const block717696 = Buffer.from(
             "00004020" + // version
-            "9acaa5d26d392ace656c2428c991b0a3d3d773845a1300000000000000000000" + // parent hash
-            "aa8e225b1f3ea6c4b7afd5aa1cecf691a8beaa7fa1e579ce240e4a62b5ac8ecc" + // merkle root
+            "9acaa5d26d392ace656c2428c991b0a3d3d773845a1300000000000000000000" +
+            "aa8e225b1f3ea6c4b7afd5aa1cecf691a8beaa7fa1e579ce240e4a62b5ac8ecc" +
             "2141d961" + // time
             "8b8c0b17" + // bits
             "0d5c05bb", // nonce
@@ -73,27 +72,31 @@ describe("BTC Light Client Tests", () => {
 
         const headers = [block717695, block717696];
         const blockHeight = genesisBlock.height + 1; // 717695
-
         // 准备 remaining accounts
         const remainingAccounts = [];
 
-        // 1. 添加前一个区块哈希账户 (717694)
-        const [prevBlockHashPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from("block_hash"), new anchor.BN(blockHeight - 1).toArrayLike(Buffer, 'le', 8)],
-            program.programId
-        );
-        remainingAccounts.push({
-            pubkey: prevBlockHashPda,
-            isWritable: false,
-            isSigner: false
-        });
-
-        // 2. Add current block hash accounts (717695, 717696)
+        // 为每个区块创建 block_hash 账户
         for (let i = 0; i < headers.length; i++) {
+            const currentHeight = blockHeight + i;
             const [blockHashPda] = PublicKey.findProgramAddressSync(
-                [Buffer.from("block_hash"), new anchor.BN(blockHeight + i).toArrayLike(Buffer, 'le', 8)],
+                [Buffer.from("block_hash"), new anchor.BN(currentHeight).toArrayLike(Buffer, 'le', 8)],
                 program.programId
             );
+
+            // 检查账户是否存在
+            const accountInfo = await provider.connection.getAccountInfo(blockHashPda);
+            if (!accountInfo) {
+                // 创建 block_hash 账户
+                await program.methods
+                    .createBlockHashAccount(
+                        new anchor.BN(currentHeight),
+                        Array.from(new Uint8Array(32)) // 初始化为空的哈希
+                    )
+                    .accounts({
+                    })
+                    .rpc();
+            }
+
             remainingAccounts.push({
                 pubkey: blockHashPda,
                 isWritable: true,
@@ -101,33 +104,21 @@ describe("BTC Light Client Tests", () => {
             });
         }
 
-        // 3. Add difficulty target account
-        const currentPeriod = Math.floor(blockHeight / 2016);
-        const [periodTargetPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from("period_target"), new anchor.BN(currentPeriod).toArrayLike(Buffer, 'le', 8)],
-            program.programId
-        );
-        remainingAccounts.push({
-            pubkey: periodTargetPda,
-            isWritable: false,
-            isSigner: false
-        });
-
+        // 提交区块头
         await program.methods
             .submitBlockHeaders(
                 new anchor.BN(blockHeight),
                 Buffer.concat(headers)
             )
             .accounts({
-                submitter: provider.wallet.publicKey,
             })
             .remainingAccounts(remainingAccounts)
             .rpc();
 
         // Verify the state after submission
-        const state = await program.account.btcLightClientState.fetch(btcLightClientState);
-        expect(state.latestBlockHeight.toString()).to.equal("717696");
-        expect(state.latestBlockTime).to.equal(1641627937); // From block 717696
+        const stateAfterSubmission = await program.account.btcLightClientState.fetch(btcLightClientState);
+        expect(stateAfterSubmission.latestBlockHeight.toString()).to.equal("717696");
+        expect(stateAfterSubmission.latestBlockTime).to.equal(1641627937); // From block 717696
     });
 
     // it("Verify transaction", async () => {

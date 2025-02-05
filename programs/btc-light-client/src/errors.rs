@@ -16,8 +16,6 @@ pub enum BtcLightClientError {
     InvalidPrevHash,
     #[msg("Parent block not yet submitted")]
     ParentBlockNotYetSubmitted,
-    #[msg("Block not found")]
-    BlockNotFound,
     #[msg("Invalid header format")]
     InvalidHeaderFormat,
     #[msg("Block hash mismatch")]
@@ -36,18 +34,12 @@ pub enum BtcLightClientError {
     InvalidOutputScript,
     #[msg("Insufficient confirmations")]
     InsufficientConfirmations,
-    #[msg("Invalid difficulty period transition")]
-    InvalidDifficultyTransition,
-    #[msg("Insufficient chain work")]
-    InsufficientChainWork,
-    #[msg("Invalid block count")]
-    InvalidBlockCount,
-    #[msg("Period target not found")]
-    PeriodTargetNotFound,
     #[msg("Invalid difficulty adjustment")]
     InvalidDifficultyAdjustment,
     #[msg("Invalid PDA account")]
     InvalidPdaAccount,
     #[msg("Deserialization PDA Account error")]
     DeserializationError,
+    #[msg("Empty PDA account")]
+    EmptyPdaAccount,
 }

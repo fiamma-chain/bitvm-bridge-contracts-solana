@@ -62,6 +62,10 @@ pub fn get_and_verify_block_hash_account<'info>(
         BtcLightClientError::InvalidPdaAccount
     );
 
+    if account_info.data_is_empty() {
+        return Err(error!(BtcLightClientError::EmptyPdaAccount));
+    }
+
     BlockHashEntry::try_deserialize(&mut &account_info.data.borrow()[..])
         .map_err(|_| error!(BtcLightClientError::DeserializationError))
 }

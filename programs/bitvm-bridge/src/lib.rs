@@ -7,7 +7,7 @@ pub mod state;
 use btc_light_client::instructions::BtcTxProof;
 use instructions::*;
 
-declare_id!("DWokzC6Koe8E8XEhzdPD271DHkrow4upow5gn8kqVJaz");
+declare_id!("86Xv3QSmMYUNQvttudJTFn5LfjSwTZ2vrHhEbSXkZZAp");
 
 #[program]
 pub mod bitvm_bridge {

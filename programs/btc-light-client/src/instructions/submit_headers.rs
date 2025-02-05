@@ -5,7 +5,7 @@ use crate::{
     utils::{get_and_verify_block_hash_account, mul_in_place},
 };
 use anchor_lang::prelude::*;
-use bitcoin::{block::Header as BlockHeader, consensus::encode::deserialize, hashes::Hash};
+use bitcoin::{block::Header as BlockHeader, consensus::deserialize, hashes::Hash};
 
 pub fn submit_block_headers(
     ctx: Context<SubmitBlockHeaders>,
@@ -38,10 +38,12 @@ pub fn submit_block_headers(
 
     let mut num_reorged = 0;
 
+    let mut prev_hash = state.latest_block_hash;
+
     for (i, header) in headers.iter().enumerate() {
         let current_height = block_height + i as u64;
         let hash = header.block_hash();
-        let new_hash = hash.to_byte_array();
+        let hash_bytes = header.block_hash().to_byte_array();
 
         // Get or create block hash account
         let block_hash_entry = get_and_verify_block_hash_account(
@@ -50,35 +52,30 @@ pub fn submit_block_headers(
             ctx.program_id,
         )?;
 
-        if block_hash_entry.hash != [0; 32] && block_hash_entry.hash != new_hash {
+        if block_hash_entry.hash != [0; 32] && block_hash_entry.hash != hash_bytes {
             num_reorged += 1;
         }
 
         // Update block hash
         let block_hash_entry = BlockHashEntry {
             height: current_height,
-            hash: new_hash,
+            hash: hash_bytes,
         };
         block_hash_entry.serialize(&mut &mut ctx.remaining_accounts[i].data.borrow_mut()[..])?;
 
         // Verify previous block hash
-        let expected_prev_hash = if i == 0 {
-            state.latest_block_hash
-        } else {
-            headers[i - 1].block_hash().to_byte_array()
-        };
-
         require!(
-            expected_prev_hash != [0; 32],
+            prev_hash != [0; 32],
             BtcLightClientError::ParentBlockNotYetSubmitted
         );
 
         if num_reorged == 0 {
             require!(
-                header.prev_blockhash.to_byte_array() == expected_prev_hash,
+                header.prev_blockhash.to_byte_array() == prev_hash,
                 BtcLightClientError::InvalidPrevHash
             );
         }
+        prev_hash = hash_bytes;
 
         // Verify PoW and difficulty
         let target = header.target();
@@ -87,27 +84,26 @@ pub fn submit_block_headers(
             BtcLightClientError::InvalidProofOfWork
         );
 
-        let new_target = header.target().to_be_bytes();
-
+        let new_target = target.to_be_bytes();
         if current_height % 2016 == 0 {
             if !state.is_testnet {
-                let mut prev_target = state.latest_peroid_target;
+                let mut prev_target = state.latest_period_target;
                 mul_in_place(&mut prev_target, 4);
                 require!(
                     new_target < prev_target,
                     BtcLightClientError::InvalidDifficultyAdjustment
                 );
             }
-            state.latest_peroid_target = new_target;
+            state.latest_period_target = new_target;
         } else if !state.is_testnet {
             require!(
-                new_target == state.latest_peroid_target,
+                new_target == state.latest_period_target,
                 BtcLightClientError::InvalidDifficultyAdjustment
             );
         }
     }
-
-    let new_tip = headers.last().unwrap().block_hash().to_byte_array();
+    let last_header = headers.last().unwrap();
+    let new_tip = last_header.block_hash().to_byte_array();
     if num_reorged > 0 {
         emit!(ChainReorg {
             reorg_count: num_reorged,
@@ -118,7 +114,7 @@ pub fn submit_block_headers(
 
     state.latest_block_height = new_height;
     state.latest_block_hash = new_tip;
-    state.latest_block_time = headers.last().unwrap().time;
+    state.latest_block_time = last_header.time;
 
     emit!(NewTip {
         block_height: new_height,

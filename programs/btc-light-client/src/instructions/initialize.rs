@@ -14,7 +14,7 @@ pub fn initialize(
     state.latest_block_height = block_height;
     state.latest_block_hash = block_hash;
     state.latest_block_time = block_time;
-    state.latest_peroid_target = expected_target;
+    state.latest_period_target = expected_target;
     state.is_testnet = is_testnet;
     state.min_confirmations = 1;
 
