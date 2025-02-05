@@ -31,8 +31,8 @@ pub struct MintToken<'info> {
     #[account(mut, seeds = [b"btc_light_client"], bump)]
     pub btc_light_client_state: Account<'info, BtcLightClientState>,
 
-    #[account(mut, seeds = [b"block_hash", block_height.to_le_bytes().as_ref()], bump)]
-    pub block_hash_account: Account<'info, BlockHashEntry>,
+    #[account(mut, seeds = [b"block_hash_entry", block_height.to_le_bytes().as_ref()], bump)]
+    pub block_hash_entry: Account<'info, BlockHashEntry>,
 
     pub btc_light_client_program: Program<'info, BtcLightClient>,
 
@@ -99,7 +99,7 @@ pub fn mint_token(
             ctx.accounts.btc_light_client_program.to_account_info(),
             VerifyTransaction {
                 state: ctx.accounts.btc_light_client_state.to_account_info(),
-                block_hash: ctx.accounts.block_hash_account.to_account_info(),
+                block_hash: ctx.accounts.block_hash_entry.to_account_info(),
             },
         ),
         block_height,

@@ -1,6 +1,7 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { BtcLightClient } from "../target/types/btc_light_client";
+import { BitcoinUtils } from "./utils";
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
 
@@ -58,7 +59,8 @@ describe("BTC Light Client Tests", () => {
             "0b40d961" +          // 4 bytes (time)
             "ab980b17" +          // 4 bytes (bits)
             "3dcc4d5a",
-            "hex");   // 4 bytes (nonce)
+            "hex"
+        );
 
         const block717696 = Buffer.from(
             "00004020" + // version
@@ -79,7 +81,7 @@ describe("BTC Light Client Tests", () => {
         for (let i = 0; i < headers.length; i++) {
             const currentHeight = blockHeight + i;
             const [blockHashPda] = PublicKey.findProgramAddressSync(
-                [Buffer.from("block_hash"), new anchor.BN(currentHeight).toArrayLike(Buffer, 'le', 8)],
+                [Buffer.from("block_hash_entry"), new anchor.BN(currentHeight).toArrayLike(Buffer, 'le', 8)],
                 program.programId
             );
 
@@ -104,7 +106,7 @@ describe("BTC Light Client Tests", () => {
             });
         }
 
-        // 提交区块头
+        //提交区块头
         await program.methods
             .submitBlockHeaders(
                 new anchor.BN(blockHeight),
@@ -119,6 +121,18 @@ describe("BTC Light Client Tests", () => {
         const stateAfterSubmission = await program.account.btcLightClientState.fetch(btcLightClientState);
         expect(stateAfterSubmission.latestBlockHeight.toString()).to.equal("717696");
         expect(stateAfterSubmission.latestBlockTime).to.equal(1641627937); // From block 717696
+
+        // Verify block hash entries
+
+        const [block717695HashPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("block_hash_entry"), new anchor.BN(717695).toArrayLike(Buffer, 'le', 8)],
+            program.programId
+        );
+
+        const block717695Hash = await program.account.blockHashEntry.fetch(block717695HashPda);
+
+        const expectedHash = "9acaa5d26d392ace656c2428c991b0a3d3d773845a1300000000000000000000";
+        expect(Buffer.from(block717695Hash.hash).toString('hex')).to.equal(expectedHash);
     });
 
     // it("Verify transaction", async () => {

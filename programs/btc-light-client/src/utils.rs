@@ -47,7 +47,7 @@ pub fn mul_in_place(arr: &mut [u8; 32], multiplicator: u32) {
 }
 
 fn get_block_hash_pda(height: u64, program_id: &Pubkey) -> (Pubkey, u8) {
-    Pubkey::find_program_address(&[b"block_hash", &height.to_le_bytes()], program_id)
+    Pubkey::find_program_address(&[b"block_hash_entry", &height.to_le_bytes()], program_id)
 }
 
 pub fn get_and_verify_block_hash_account<'info>(

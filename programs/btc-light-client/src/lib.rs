@@ -8,7 +8,7 @@ pub mod utils;
 
 use instructions::*;
 
-declare_id!("8jHDstV4ZopYnx4ymcV6e67bXPMLhCxQARxSARfNrgsH");
+declare_id!("H2WfnhhCB3hPsSjNSbzQDw4ivDWjAHSo1QwXc6kZxMG1");
 
 #[program]
 pub mod btc_light_client {

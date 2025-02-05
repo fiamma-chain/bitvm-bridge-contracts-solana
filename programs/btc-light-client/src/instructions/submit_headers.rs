@@ -57,11 +57,12 @@ pub fn submit_block_headers(
         }
 
         // Update block hash
-        let block_hash_entry = BlockHashEntry {
-            height: current_height,
-            hash: hash_bytes,
-        };
-        block_hash_entry.serialize(&mut &mut ctx.remaining_accounts[i].data.borrow_mut()[..])?;
+        let mut block_hash_entry =
+            BlockHashEntry::try_deserialize(&mut &ctx.remaining_accounts[i].data.borrow_mut()[..])?;
+        block_hash_entry.hash = hash_bytes;
+        block_hash_entry.height = current_height;
+        block_hash_entry
+            .try_serialize(&mut &mut ctx.remaining_accounts[i].data.borrow_mut()[..])?;
 
         // Verify previous block hash
         require!(

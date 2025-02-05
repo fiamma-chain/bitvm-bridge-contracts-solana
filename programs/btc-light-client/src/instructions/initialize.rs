@@ -18,7 +18,7 @@ pub fn initialize(
     state.is_testnet = is_testnet;
     state.min_confirmations = 1;
 
-    let block_hash_entry = &mut ctx.accounts.block_hash;
+    let block_hash_entry = &mut ctx.accounts.block_hash_entry;
     block_hash_entry.height = block_height;
     block_hash_entry.hash = block_hash;
 
@@ -41,10 +41,10 @@ pub struct Initialize<'info> {
         init,
         payer = payer,
         space = 8 + 8 + 32,
-        seeds = [b"block_hash".as_ref(), block_height.to_le_bytes().as_ref()],
+        seeds = [b"block_hash_entry".as_ref(), block_height.to_le_bytes().as_ref()],
         bump
     )]
-    pub block_hash: Account<'info, BlockHashEntry>,
+    pub block_hash_entry: Account<'info, BlockHashEntry>,
     #[account(mut)]
     pub payer: Signer<'info>,
     pub system_program: Program<'info, System>,
