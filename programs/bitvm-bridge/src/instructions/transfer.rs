@@ -34,20 +34,6 @@ pub struct TransferTokens<'info> {
 }
 
 pub fn transfer_token(ctx: Context<TransferTokens>, amount: u64) -> Result<()> {
-    msg!("Transferring tokens...");
-    msg!(
-        "Mint: {}",
-        &ctx.accounts.mint_account.to_account_info().key()
-    );
-    msg!(
-        "From Token Address: {}",
-        &ctx.accounts.sender_token_account.key()
-    );
-    msg!(
-        "To Token Address: {}",
-        &ctx.accounts.recipient_token_account.key()
-    );
-
     // Invoke the transfer instruction on the token program
     transfer(
         CpiContext::new(
@@ -58,10 +44,8 @@ pub fn transfer_token(ctx: Context<TransferTokens>, amount: u64) -> Result<()> {
                 authority: ctx.accounts.sender.to_account_info(),
             },
         ),
-        amount * 10u64.pow(ctx.accounts.mint_account.decimals as u32), // Transfer amount, adjust for decimals
+        amount,
     )?;
-
-    msg!("Tokens transferred successfully.");
 
     Ok(())
 }

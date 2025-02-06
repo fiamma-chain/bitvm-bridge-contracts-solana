@@ -68,10 +68,7 @@ pub fn initialize(
     ctx: Context<Initialize>,
     token_metadata: TokenMetadata,
     bridge_params: BridgeParams,
-    btc_light_client: Pubkey,
 ) -> Result<()> {
-    msg!("Creating metadata account");
-
     // Cross Program Invocation (CPI)
     // Invoking the create_metadata_account_v3 instruction on the token metadata program
     create_metadata_accounts_v3(
@@ -102,14 +99,11 @@ pub fn initialize(
     )?;
 
     ctx.accounts.bridge_state.owner = ctx.accounts.owner.key();
-    ctx.accounts.bridge_state.btc_light_client = btc_light_client;
     ctx.accounts.bridge_state.mint_account = ctx.accounts.mint_account.key();
     ctx.accounts.bridge_state.max_btc_per_mint = bridge_params.max_btc_per_mint;
     ctx.accounts.bridge_state.min_btc_per_mint = bridge_params.min_btc_per_mint;
     ctx.accounts.bridge_state.max_btc_per_burn = bridge_params.max_btc_per_burn;
     ctx.accounts.bridge_state.min_btc_per_burn = bridge_params.min_btc_per_burn;
-
-    msg!("Initialized successfully.");
 
     Ok(())
 }

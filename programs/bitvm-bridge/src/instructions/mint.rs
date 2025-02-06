@@ -8,15 +8,9 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
-use btc_light_client::{
-    cpi::{accounts::VerifyTransaction, verify_transaction},
-    instructions::BtcTxProof,
-    program::BtcLightClient,
-    state::{BlockHashEntry, BtcLightClientState},
-};
 
 #[derive(Accounts)]
-#[instruction(tx_id: [u8; 32], block_height: u64)]
+#[instruction(tx_id: [u8; 32])]
 pub struct MintToken<'info> {
     #[account(
         init_if_needed,
@@ -26,16 +20,6 @@ pub struct MintToken<'info> {
         bump
     )]
     pub minted_tx: Account<'info, MintedTx>,
-
-    // BTC Light Client accounts
-    #[account(mut, seeds = [b"btc_light_client"], bump)]
-    pub btc_light_client_state: Account<'info, BtcLightClientState>,
-
-    #[account(mut, seeds = [b"block_hash_entry", block_height.to_le_bytes().as_ref()], bump)]
-    pub block_hash_entry: Account<'info, BlockHashEntry>,
-
-    pub btc_light_client_program: Program<'info, BtcLightClient>,
-
     #[account(mut)]
     pub mint_authority: Signer<'info>,
 
@@ -63,12 +47,7 @@ pub struct MintToken<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn mint_token(
-    ctx: Context<MintToken>,
-    amount: u64,
-    block_height: u64,
-    tx_proof: BtcTxProof,
-) -> Result<()> {
+pub fn mint_token(ctx: Context<MintToken>, tx_id: [u8; 32], amount: u64) -> Result<()> {
     let bridge_state = &ctx.accounts.bridge_state;
     let minted_tx = &mut ctx.accounts.minted_tx;
 
@@ -79,32 +58,10 @@ pub fn mint_token(
     );
 
     // Verify transaction hasn't been minted before
-    require!(
-        minted_tx.tx_id != tx_proof.tx_id,
-        BitvmBridgeError::TxAlreadyMinted
-    );
+    require!(minted_tx.tx_id != tx_id, BitvmBridgeError::TxAlreadyMinted);
 
-    // Store the tx id in the minted_tx account
-    minted_tx.tx_id = tx_proof.tx_id;
-
-    // Verify amount matches proof
-    require!(
-        amount == tx_proof.expected_amount,
-        BitvmBridgeError::MismatchBtcAmount
-    );
-
-    // Verify BTC transaction with light client
-    verify_transaction(
-        CpiContext::new(
-            ctx.accounts.btc_light_client_program.to_account_info(),
-            VerifyTransaction {
-                state: ctx.accounts.btc_light_client_state.to_account_info(),
-                block_hash_entry: ctx.accounts.block_hash_entry.to_account_info(),
-            },
-        ),
-        block_height,
-        tx_proof,
-    )?;
+    //Store the tx id in the minted_tx account
+    minted_tx.tx_id = tx_id;
 
     // Mint tokens
     mint_to(
