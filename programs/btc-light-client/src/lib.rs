@@ -22,6 +22,7 @@ pub mod btc_light_client {
         block_time: u32,
         expected_target: [u8; 32],
         is_testnet: bool,
+        min_confirmations: u64,
     ) -> Result<()> {
         instructions::initialize::initialize(
             ctx,
@@ -30,6 +31,7 @@ pub mod btc_light_client {
             block_time,
             expected_target,
             is_testnet,
+            min_confirmations,
         )
     }
 

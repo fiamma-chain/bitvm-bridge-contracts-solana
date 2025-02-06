@@ -13,7 +13,7 @@ pub fn verify_transaction(
     tx_proof: BtcTxProof,
 ) -> Result<()> {
     let state = &ctx.accounts.state;
-    let block_hash_entry = &ctx.accounts.block_hash;
+    let block_hash_entry = &ctx.accounts.block_hash_entry;
 
     require!(
         state.latest_block_height >= block_height + state.min_confirmations,
@@ -25,17 +25,6 @@ pub fn verify_transaction(
     require!(
         header.block_hash().to_byte_array() == block_hash_entry.hash,
         BtcLightClientError::BlockHashMismatch
-    );
-
-    let tx_hash = bitcoin::Txid::from_byte_array(tx_proof.tx_id);
-    require!(
-        verify_merkle_proof(
-            tx_hash,
-            header.merkle_root,
-            tx_proof.tx_index,
-            &tx_proof.merkle_proof
-        ),
-        BtcLightClientError::InvalidMerkleProof
     );
 
     let tx: bitcoin::Transaction =
@@ -61,6 +50,17 @@ pub fn verify_transaction(
         BtcLightClientError::InvalidOutputScript
     );
 
+    let tx_hash = bitcoin::Txid::from_byte_array(tx_proof.tx_id);
+    require!(
+        verify_merkle_proof(
+            tx_hash,
+            header.merkle_root,
+            tx_proof.tx_index,
+            &tx_proof.merkle_proof
+        ),
+        BtcLightClientError::InvalidMerkleProof
+    );
+
     emit!(TransactionVerified {
         block_height,
         tx_id: tx_proof.tx_id,
@@ -77,10 +77,10 @@ pub struct VerifyTransaction<'info> {
     pub state: Account<'info, BtcLightClientState>,
 
     #[account(
-        seeds = [b"block_hash", block_height.to_le_bytes().as_ref()],
+        seeds = [b"block_hash_entry", block_height.to_le_bytes().as_ref()],
         bump
     )]
-    pub block_hash: Account<'info, BlockHashEntry>,
+    pub block_hash_entry: Account<'info, BlockHashEntry>,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]

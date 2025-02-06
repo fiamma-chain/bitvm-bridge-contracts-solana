@@ -59,6 +59,7 @@ describe("BTC Light Client Tests", () => {
                 genesisBlock.time,
                 Array.from(genesisBlock.target),
                 false,
+                new anchor.BN(0),
             )
             .accounts({})
             .rpc();
@@ -236,14 +237,14 @@ async function createBlockHashAccountIfNeeded(
         program.programId
     );
 
-    // 检查账户是否存在
+    // Check if account exists
     const accountInfo = await provider.connection.getAccountInfo(blockHashPda);
     if (!accountInfo) {
-        // 创建 block_hash 账户
+        // Create block_hash account
         const tx = await program.methods
             .createBlockHashAccount(
                 new anchor.BN(currentHeight),
-                Array.from(new Uint8Array(32)) // 初始化为空的哈希
+                Array.from(new Uint8Array(32)) // Initialize with empty hash
             )
             .accounts({
             })

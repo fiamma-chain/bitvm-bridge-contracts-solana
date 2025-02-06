@@ -8,6 +8,7 @@ pub fn initialize(
     block_time: u32,
     expected_target: [u8; 32],
     is_testnet: bool,
+    min_confirmations: u64,
 ) -> Result<()> {
     let state = &mut ctx.accounts.state;
 
@@ -16,7 +17,7 @@ pub fn initialize(
     state.latest_block_time = block_time;
     state.latest_period_target = expected_target;
     state.is_testnet = is_testnet;
-    state.min_confirmations = 1;
+    state.min_confirmations = min_confirmations;
 
     let block_hash_entry = &mut ctx.accounts.block_hash_entry;
     block_hash_entry.height = block_height;

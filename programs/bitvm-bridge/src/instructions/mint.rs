@@ -99,7 +99,7 @@ pub fn mint_token(
             ctx.accounts.btc_light_client_program.to_account_info(),
             VerifyTransaction {
                 state: ctx.accounts.btc_light_client_state.to_account_info(),
-                block_hash: ctx.accounts.block_hash_entry.to_account_info(),
+                block_hash_entry: ctx.accounts.block_hash_entry.to_account_info(),
             },
         ),
         block_height,

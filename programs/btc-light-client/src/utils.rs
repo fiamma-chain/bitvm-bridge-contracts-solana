@@ -1,7 +1,7 @@
 use crate::errors::BtcLightClientError;
 use crate::state::BlockHashEntry;
 use anchor_lang::prelude::*;
-use bitcoin::hashes::Hash;
+use bitcoin::hashes::{sha256d, Hash};
 
 pub fn verify_merkle_proof(
     tx_hash: bitcoin::Txid,
@@ -9,19 +9,27 @@ pub fn verify_merkle_proof(
     tx_index: u32,
     proof: &[[u8; 32]],
 ) -> bool {
-    let mut current = tx_hash.to_raw_hash();
-    let mut index = tx_index;
+    let mut current_hash = tx_hash.to_raw_hash();
 
-    for sibling in proof {
-        current = if index & 1 == 0 {
-            bitcoin::hashes::sha256d::Hash::hash(&[&current[..], sibling].concat())
+    for (i, next_hash) in proof.iter().enumerate() {
+        let mut concat = vec![];
+        // extracts the i-th bit of tx idx
+        if ((tx_index >> i) & 1) == 1 {
+            // If the bit is 1, the transaction is in the right subtree of the current hash
+            // Append the next hash and then the current hash to the concatenated hash value
+            concat.extend_from_slice(next_hash);
+            concat.extend_from_slice(&current_hash[..]);
         } else {
-            bitcoin::hashes::sha256d::Hash::hash(&[sibling, &current[..]].concat())
-        };
-        index >>= 1;
+            // If the bit is 0, the transaction is in the left subtree of the current hash
+            // Append the current hash and then the next hash to the concatenated hash value
+            concat.extend_from_slice(&current_hash[..]);
+            concat.extend_from_slice(next_hash);
+        }
+
+        current_hash = sha256d::Hash::hash(&concat);
     }
 
-    current == merkle_root.to_raw_hash()
+    &current_hash == &merkle_root.to_raw_hash()
 }
 
 pub fn verify_output_script(script: &bitcoin::Script, expected_hash: &[u8; 32]) -> bool {
