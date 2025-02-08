@@ -1,7 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { BtcLightClient } from "../target/types/btc_light_client";
-import { BitcoinUtils } from "./utils";
 import { expect } from "chai";
 import { PublicKey } from "@solana/web3.js";
 
@@ -79,14 +78,14 @@ describe("BTC Light Client Tests", () => {
         const headers = [block717695, block717696];
         const blockHeight = genesisBlock.height + 1; // 717695
 
-        // 为每个区块创建 block_hash 账户
+        // create block hash accounts for each block
         let remainingAccounts = await Promise.all(
             headers.map((_, i) =>
                 createBlockHashAccountIfNeeded(program, provider, blockHeight + i)
             )
         );
 
-        //提交区块头
+        // submit block headers
         await program.methods
             .submitBlockHeaders(
                 new anchor.BN(blockHeight),

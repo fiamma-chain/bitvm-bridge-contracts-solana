@@ -12,10 +12,10 @@ pub struct BridgeState {
 }
 
 #[account]
-pub struct MintedTx {
-    pub tx_id: [u8; 32],
+pub struct TxMintedState {
+    pub is_minted: bool,
 }
 
-impl MintedTx {
-    pub const SPACE: usize = 8 + 32; // discriminator + tx_id
+impl TxMintedState {
+    pub const SPACE: usize = 8 + 1; // discriminator + is_minted
 }

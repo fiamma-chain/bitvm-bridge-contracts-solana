@@ -67,14 +67,31 @@ pub fn verify_transaction(
         amount: output.value.to_sat(),
     });
 
+    // set the tx state
+    let tx_verified_state = &mut ctx.accounts.tx_verified_state;
+    tx_verified_state.is_verified = true;
+
     Ok(())
 }
 
 #[derive(Accounts)]
-#[instruction(block_height: u64)]
+#[instruction(block_height: u64, tx_proof: BtcTxProof)]
 pub struct VerifyTransaction<'info> {
     #[account(seeds = [b"btc_light_client"], bump)]
     pub state: Account<'info, BtcLightClientState>,
+
+    #[account(
+        init_if_needed,
+        seeds = [b"tx_verified_state".as_ref(), tx_proof.tx_id.as_ref()],
+        bump,
+        payer = payer,
+        space = TxVerifiedState::SPACE
+    )]
+    pub tx_verified_state: Account<'info, TxVerifiedState>,
+
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    pub system_program: Program<'info, System>,
 
     #[account(
         seeds = [b"block_hash_entry", block_height.to_le_bytes().as_ref()],
@@ -93,4 +110,13 @@ pub struct BtcTxProof {
     pub output_index: u32,
     pub expected_amount: u64,
     pub expected_script_hash: [u8; 32],
+}
+
+#[account]
+pub struct TxVerifiedState {
+    pub is_verified: bool,
+}
+
+impl TxVerifiedState {
+    pub const SPACE: usize = 8 + 1; // discriminator + is_verified
 }

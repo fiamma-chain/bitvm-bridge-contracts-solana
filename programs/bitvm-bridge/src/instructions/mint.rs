@@ -1,25 +1,18 @@
 use crate::{
     errors::BitvmBridgeError,
     events::MintEvent,
-    state::{BridgeState, MintedTx},
+    state::{BridgeState, TxMintedState},
 };
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
+use btc_light_client::{instructions::TxVerifiedState, ID as BTC_LIGHT_CLIENT_PROGRAM_ID};
 
 #[derive(Accounts)]
 #[instruction(tx_id: [u8; 32])]
 pub struct MintToken<'info> {
-    #[account(
-        init_if_needed,
-        payer = mint_authority,
-        space = MintedTx::SPACE,
-        seeds = [b"minted_tx".as_ref(), tx_id.as_ref()],
-        bump
-    )]
-    pub minted_tx: Account<'info, MintedTx>,
     #[account(mut)]
     pub mint_authority: Signer<'info>,
 
@@ -45,23 +38,44 @@ pub struct MintToken<'info> {
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
+
+    #[account(
+        init_if_needed,
+        payer = mint_authority,
+        space = TxMintedState::SPACE,
+        seeds = [b"tx_minted_state".as_ref(), tx_id.as_ref()],
+        bump,
+    )]
+    pub tx_minted_state: Account<'info, TxMintedState>,
+
+    #[account(
+        mut,
+        seeds = [b"tx_verified_state", tx_id.as_ref()],
+        seeds::program = BTC_LIGHT_CLIENT_PROGRAM_ID,
+        bump,
+    )]
+    pub tx_verified_state: Account<'info, TxVerifiedState>,
 }
 
-pub fn mint_token(ctx: Context<MintToken>, tx_id: [u8; 32], amount: u64) -> Result<()> {
+pub fn mint_token(ctx: Context<MintToken>, _tx_id: [u8; 32], amount: u64) -> Result<()> {
     let bridge_state = &ctx.accounts.bridge_state;
-    let minted_tx = &mut ctx.accounts.minted_tx;
-
+    let tx_verified_state = &ctx.accounts.tx_verified_state;
+    let tx_minted_state = &mut ctx.accounts.tx_minted_state;
     // Verify amount limits
     require!(
         amount >= bridge_state.min_btc_per_mint && amount <= bridge_state.max_btc_per_mint,
         BitvmBridgeError::InvalidPeginAmount
     );
 
-    // Verify transaction hasn't been minted before
-    require!(minted_tx.tx_id != tx_id, BitvmBridgeError::TxAlreadyMinted);
+    require!(
+        tx_verified_state.is_verified,
+        BitvmBridgeError::TxNotVerified
+    );
 
-    //Store the tx id in the minted_tx account
-    minted_tx.tx_id = tx_id;
+    require!(
+        !tx_minted_state.is_minted,
+        BitvmBridgeError::TxAlreadyMinted
+    );
 
     // Mint tokens
     mint_to(
@@ -80,6 +94,8 @@ pub fn mint_token(ctx: Context<MintToken>, tx_id: [u8; 32], amount: u64) -> Resu
         to: ctx.accounts.recipient.key(),
         value: amount,
     });
+
+    tx_minted_state.is_minted = true;
 
     Ok(())
 }

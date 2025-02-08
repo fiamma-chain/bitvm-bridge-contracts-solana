@@ -15,7 +15,6 @@ describe("BTC TX Verify Tests", async () => {
     const context = await startAnchor('', [{ name: 'btc_light_client', programId: PROGRAM_ID }], []);
     const provider = new BankrunProvider(context);
 
-    const payer = provider.wallet as anchor.Wallet;
     const program = new anchor.Program<BtcLightClient>(IDL, provider);
 
     const genesisBlock = {
@@ -101,6 +100,14 @@ describe("BTC TX Verify Tests", async () => {
                 })
             ])
             .rpc();
+
+        const [btcTxStatePda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("tx_verified_state"), txId],
+            program.programId
+        );
+
+        const txState = await program.account.txVerifiedState.fetch(btcTxStatePda);
+        expect(txState.isVerified).to.be.true;
     });
 
 });
