@@ -53,7 +53,7 @@ pub fn burn_token(
     token::burn(cpi_ctx, amount)?;
 
     emit!(BurnEvent {
-        from: ctx.accounts.associated_token_account.key(),
+        from: ctx.accounts.authority.key(),
         btc_addr: btc_addr,
         value: amount,
         operator_id: operator_id,
