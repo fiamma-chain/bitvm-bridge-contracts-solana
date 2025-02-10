@@ -43,11 +43,12 @@ solana config set --url localhost
 ```
 
 2. Start local validator
+   
 ```bash
-solana-test-validator
+solana-test-validator --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --url https://api.mainnet-beta.solana.com --reset
 ```
 
-3. Deploy locally
+1. Deploy locally
 ```bash
 anchor deploy
 ```
@@ -85,6 +86,11 @@ anchor deploy
 anchor build
 solana program write-buffer ./target/deploy/bitvm_bridge.so
 solana program deploy --buffer <BUFFER_ADDRESS> --program-id <PROGRAM_ID>
+```
+
+### Close Deploy Buffer account
+```bash
+solana program close --buffers 
 ```
 
 ## Contract Parameters
