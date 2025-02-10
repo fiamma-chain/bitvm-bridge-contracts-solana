@@ -17,7 +17,6 @@ export async function initializeBitvmBridge() {
 
   const program = anchor.workspace.BitvmBridge as Program<BitvmBridge>;
 
-
   // Check if bridge state already exists
   const [bridgeStatePda] = PublicKey.findProgramAddressSync(
     [Buffer.from("bridge_state")],
@@ -26,7 +25,10 @@ export async function initializeBitvmBridge() {
 
   try {
     const state = await program.account.bridgeState.fetch(bridgeStatePda);
-    console.log("Bridge already initialized with owner:", state.owner.toString());
+    console.log(
+      "Bridge already initialized with owner:",
+      state.owner.toString()
+    );
     console.log("Bridge Program ID:", program.programId.toString());
     console.log("Bridge Token Account:", state.mintAccount.toString());
     return;
@@ -34,7 +36,6 @@ export async function initializeBitvmBridge() {
     // If the account does not exist, continue initialization
     console.log("Initializing new bridge...");
   }
-
 
   // Generate mint account
   const mintKeypair = Keypair.generate();

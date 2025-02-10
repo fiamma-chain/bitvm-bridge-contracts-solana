@@ -18,79 +18,91 @@ The BitVM Bridge smart contract enables:
 - Anchor Framework 0.30.1+
 - Yarn
 
-## Quick Start
+## Development Setup
 
 1. Install dependencies
 ```bash
 yarn install
 ```
 
-2. Build the program
+2. Create `.env` file from template
+```bash
+cp .env.example .env
+```
+
+Update the following values in `.env`:
+```plaintext
+SOLANA_PRIVATE_KEY=your_base58_private_key
+RPC_URL=https://api.devnet.solana.com
+```
+
+3. Build the program
 ```bash
 anchor build
 ```
 
-3. Run tests
-```bash
-anchor test
-```
-
-## Development Setup
-
-1. Configure Solana CLI
-```bash
-solana config set --url localhost
-```
-
-2. Start local validator
-   
-```bash
-solana-test-validator --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT --url https://api.mainnet-beta.solana.com --reset
-```
-
-1. Deploy locally
-```bash
-anchor deploy
-```
-
 ## Testing
 
-The test suite includes:
-- Token initialization
-- Minting operations
-- Burning operations
-- Admin functions
-- Parameter updates
+### Local Testing
+1. Start local validator with required programs
+```bash
+solana-test-validator \
+  --clone metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s \
+  --clone PwDiXFxQsGra4sFFTT8r1QWRMd4vfumiWC1jfWNfdYT \
+  --url https://api.mainnet-beta.solana.com \
+  --reset
+```
 
-Run tests with:
+2. Run tests
 ```bash
 anchor test
 ```
 
 ## Deployment
 
-### Local Testnet
+### Local Deployment
 ```bash
 anchor deploy
 ```
 
-### Devnet
+### Devnet Deployment
+1. Configure Solana CLI for devnet
 ```bash
 solana config set --url devnet
-solana airdrop 2 # Get test SOL
+```
+
+2. Get devnet SOL
+```bash
+solana airdrop 2
+```
+
+3. Deploy
+```bash
 anchor deploy
+```
+
+### Initialize Contract
+After deployment, initialize the contract:
+```bash
+yarn initialize
 ```
 
 ### Program Upgrade
 ```bash
+# Build program
 anchor build
+
+# Create upgrade buffer
 solana program write-buffer ./target/deploy/bitvm_bridge.so
+
+# Deploy upgrade
 solana program deploy --buffer <BUFFER_ADDRESS> --program-id <PROGRAM_ID>
 ```
 
-### Close Deploy Buffer account
+### Cleanup
+Close deploy buffer account:
 ```bash
-solana program close --buffers 
+solana program close --buffers
 ```
 
 ## Contract Parameters
@@ -100,25 +112,19 @@ The bridge contract includes configurable parameters:
 - `min_btc_per_mint`: Minimum BTC amount per mint
 - `max_btc_per_burn`: Maximum BTC amount per burn
 - `min_btc_per_burn`: Minimum BTC amount per burn
-
-## Security Features
-
-- Owner-only admin functions
-- Configurable burn pause mechanism
-- Amount limits for minting and burning
-- Proper decimal handling for BTC amounts
+- `skip_tx_verification`: Enable/disable transaction verification
 
 ## Project Structure
-
 ```
 ├── programs/
-│   └── bitvm-bridge/
-│       ├── src/
-│       │   ├── instructions/    # Contract instructions
-│       │   ├── error.rs        # Error definitions
-│       │   └── lib.rs          # Program entrypoint
-├── tests/                      # Integration tests
-└── Anchor.toml                 # Project configuration
+│   ├── bitvm-bridge/       # Bridge program
+│   └── btc-light-client/   # BTC Light Client program
+├── tests/                  # Integration tests
+├── cli/                    # CLI tools
+│   └── src/
+│       ├── commands/       # CLI commands
+│       └── utils.ts        # Utility functions
+└── Anchor.toml            # Project configuration
 ```
 
 ## License
