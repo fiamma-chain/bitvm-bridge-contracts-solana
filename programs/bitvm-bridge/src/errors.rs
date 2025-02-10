@@ -17,6 +17,9 @@ pub enum BitvmBridgeError {
     #[msg("Burn is paused")]
     BurnPaused,
 
+    #[msg("Tx verification required")]
+    TxVerificationRequired,
+
     #[msg("Tx not verified")]
     TxNotVerified,
 

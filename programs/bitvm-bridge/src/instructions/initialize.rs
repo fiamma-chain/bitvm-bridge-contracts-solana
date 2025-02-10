@@ -16,6 +16,7 @@ pub struct BridgeParams {
     pub min_btc_per_mint: u64,
     pub max_btc_per_burn: u64,
     pub min_btc_per_burn: u64,
+    pub skip_tx_verification: bool,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -104,6 +105,7 @@ pub fn initialize(
     ctx.accounts.bridge_state.min_btc_per_mint = bridge_params.min_btc_per_mint;
     ctx.accounts.bridge_state.max_btc_per_burn = bridge_params.max_btc_per_burn;
     ctx.accounts.bridge_state.min_btc_per_burn = bridge_params.min_btc_per_burn;
+    ctx.accounts.bridge_state.skip_tx_verification = bridge_params.skip_tx_verification;
 
     Ok(())
 }

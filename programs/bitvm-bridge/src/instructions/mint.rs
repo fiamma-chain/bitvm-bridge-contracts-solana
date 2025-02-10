@@ -54,7 +54,7 @@ pub struct MintToken<'info> {
         seeds::program = BTC_LIGHT_CLIENT_PROGRAM_ID,
         bump,
     )]
-    pub tx_verified_state: Account<'info, TxVerifiedState>,
+    pub tx_verified_state: Option<Account<'info, TxVerifiedState>>,
 }
 
 pub fn mint_token(ctx: Context<MintToken>, _tx_id: [u8; 32], amount: u64) -> Result<()> {
@@ -67,8 +67,10 @@ pub fn mint_token(ctx: Context<MintToken>, _tx_id: [u8; 32], amount: u64) -> Res
         BitvmBridgeError::InvalidPeginAmount
     );
 
+    // For Testing, we skip the tx verification
     require!(
-        tx_verified_state.is_verified,
+        bridge_state.skip_tx_verification
+            || (tx_verified_state.is_some() && tx_verified_state.as_ref().unwrap().is_verified),
         BitvmBridgeError::TxNotVerified
     );
 

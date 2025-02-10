@@ -158,6 +158,7 @@ describe("Test Bitvm Bridge", async () => {
       minBtcPerMint: new anchor.BN(7500),
       maxBtcPerBurn: new anchor.BN(1000000),
       minBtcPerBurn: new anchor.BN(7500),
+      skipTxVerification: false,
     };
 
     await bitvmBridgeProgram.methods
@@ -177,6 +178,7 @@ describe("Test Bitvm Bridge", async () => {
     expect(state.minBtcPerMint.toString()).to.equal(bridgeParams.minBtcPerMint.toString());
     expect(state.maxBtcPerBurn.toString()).to.equal(bridgeParams.maxBtcPerBurn.toString());
     expect(state.minBtcPerBurn.toString()).to.equal(bridgeParams.minBtcPerBurn.toString());
+    expect(state.skipTxVerification).to.be.false;
   });
 
   it("Mint some tokens to your wallet!", async () => {
