@@ -18,7 +18,7 @@ export function loadSubmitterWalletFromEnv(): Keypair {
 }
 
 export function getRpcUrl(): string {
-    const rpcUrl = process.env.RPC_URL;
+    const rpcUrl = process.env.SOLANA_RPC_URL;
     if (!rpcUrl) throw new Error("RPC_URL not found in .env");
     return rpcUrl;
 } 
