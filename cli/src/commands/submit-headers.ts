@@ -166,12 +166,21 @@ async function submitBlockHeaders(
         )
     );
 
+    // wait for create block hash accounts to be processed
+    console.log("Waiting for create block hash accounts to be processed...");
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     console.log(`Submitting ${headers.length} headers from height ${currentHeight + 1}`);
 
     await program.methods
         .submitBlockHeaders(new anchor.BN(currentHeight + 1), Buffer.concat(headers))
         .accounts({})
         .remainingAccounts(remainingAccounts)
+        .preInstructions([
+            anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({
+                units: 500_000,
+            }),
+        ])
         .rpc();
 
     console.log("Headers submitted successfully");
