@@ -4,7 +4,9 @@
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "postinstall": "zx prepare.mjs",
-    "initialize": "ts-node cli/src/index.ts initialize"
+    "initialize-bridge": "ts-node cli/src/index.ts initialize",
+    "initialize-btc-light-client": "ts-node cli/src/index.ts initialize-btc-light-client",
+    "submit-headers": "ts-node cli/src/index.ts submit-headers --daemon"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.30.1",

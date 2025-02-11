@@ -1,6 +1,6 @@
 import { Program, Wallet } from "@coral-xyz/anchor";
 import { Keypair, Connection, PublicKey } from "@solana/web3.js";
-import { loadWalletFromEnv, getRpcUrl } from "../utils";
+import { loadWalletFromEnv, getRpcUrl } from "../utils/wallet";
 import { BN } from "@coral-xyz/anchor";
 import { BitvmBridge } from "../../../target/types/bitvm_bridge";
 import * as anchor from "@coral-xyz/anchor";
