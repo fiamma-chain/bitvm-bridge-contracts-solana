@@ -100,17 +100,25 @@ async function submitHeadersOnce() {
             program.programId
         );
 
-        const blockHashAccount = await program.account.blockHashEntry.fetch(blockHashPda);
-        const storedHash = Buffer.from(blockHashAccount.hash).toString('hex');
+        try {
+            const blockHashAccount = await program.account.blockHashEntry.fetch(blockHashPda);
+            const storedHash = Buffer.from(blockHashAccount.hash).toString('hex');
 
-        if (btcHash === storedHash) {
-            console.log(`Found common hash at height ${height}: ${btcHash}`);
-            commonHeight = height;
+            if (btcHash === storedHash) {
+                console.log(`Found common hash at height ${height}: ${btcHash}`);
+                commonHeight = height;
+                break;
+            }
+        } catch (error) {
+            // Account does not exist, which means we've found our starting point
+            console.log(`No block hash account found at height ${height}, using as starting point`);
+            commonHeight = height;  // Use this height as the starting point
             break;
-        } else if (height === mirrorLatestHeight - MAX_REORG) {
-            throw new Error(`No common hash found within ${MAX_REORG} blocks. Catastrophic reorg?`);
         }
 
+        if (height === mirrorLatestHeight - MAX_REORG) {
+            throw new Error(`No common hash found within ${MAX_REORG} blocks. Catastrophic reorg?`);
+        }
     }
 
     // get and submit block headers
