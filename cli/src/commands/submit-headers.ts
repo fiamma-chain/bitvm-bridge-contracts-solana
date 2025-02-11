@@ -168,7 +168,7 @@ async function submitBlockHeaders(
 
     // wait for create block hash accounts to be processed
     console.log("Waiting for create block hash accounts to be processed...");
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     console.log(`Submitting ${headers.length} headers from height ${currentHeight + 1}`);
 
