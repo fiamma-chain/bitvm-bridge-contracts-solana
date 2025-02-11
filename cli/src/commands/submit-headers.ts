@@ -90,6 +90,8 @@ async function submitHeadersOnce() {
 
     for (let height = mirrorLatestHeight; height > mirrorLatestHeight - MAX_REORG; height--) {
         const btcHash = await getBtcBlockHash(rpc, height);
+        // convert to little endian, because the block hash is stored in little endian in the light client
+        const btcHashLE = Buffer.from(btcHash, 'hex').reverse().toString('hex');
 
         // Get stored hash from light client
         const [blockHashPda] = PublicKey.findProgramAddressSync(
@@ -104,15 +106,15 @@ async function submitHeadersOnce() {
             const blockHashAccount = await program.account.blockHashEntry.fetch(blockHashPda);
             const storedHash = Buffer.from(blockHashAccount.hash).toString('hex');
 
-            if (btcHash === storedHash) {
-                console.log(`Found common hash at height ${height}: ${btcHash}`);
+            if (btcHashLE === storedHash) {
+                console.log(`Found common hash at height ${height}: ${btcHash} (LE: ${btcHashLE})`);
                 commonHeight = height;
                 break;
             }
         } catch (error) {
             // Account does not exist, which means we've found our starting point
             console.log(`No block hash account found at height ${height}, using as starting point`);
-            commonHeight = height;  // Use this height as the starting point
+            commonHeight = height;
             break;
         }
 
