@@ -18,6 +18,7 @@ pub fn initialize(
     state.latest_period_target = expected_target;
     state.is_testnet = is_testnet;
     state.min_confirmations = min_confirmations;
+    state.owner = ctx.accounts.payer.key();
 
     let block_hash_entry = &mut ctx.accounts.block_hash_entry;
     block_hash_entry.height = block_height;

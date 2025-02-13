@@ -42,4 +42,6 @@ pub enum BtcLightClientError {
     DeserializationError,
     #[msg("Empty PDA account")]
     EmptyPdaAccount,
+    #[msg("Unauthorized signer")]
+    UnauthorizedSigner,
 }

@@ -8,7 +8,8 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
-use btc_light_client::{instructions::TxVerifiedState, ID as BTC_LIGHT_CLIENT_PROGRAM_ID};
+use btc_light_client::state::TxVerifiedState;
+use btc_light_client::ID as BTC_LIGHT_CLIENT_PROGRAM_ID;
 
 #[derive(Accounts)]
 #[instruction(tx_id: [u8; 32])]

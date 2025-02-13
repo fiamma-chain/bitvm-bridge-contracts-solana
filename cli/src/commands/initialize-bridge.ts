@@ -1,12 +1,12 @@
-import { Program, Wallet } from "@coral-xyz/anchor";
+import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
 import { Keypair, Connection, PublicKey } from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
 import { loadWalletFromEnv, getRpcUrl } from "../utils/wallet";
 import { BN } from "@coral-xyz/anchor";
 import { BitvmBridge } from "../../../target/types/bitvm_bridge";
-import * as anchor from "@coral-xyz/anchor";
 
 export async function initializeBitvmBridge() {
-  const connection = new Connection(getRpcUrl());
+  const connection = new Connection(getRpcUrl(), "confirmed");
   const wallet = new Wallet(loadWalletFromEnv());
 
   console.log("current wallet", wallet.publicKey.toString());
@@ -25,11 +25,7 @@ export async function initializeBitvmBridge() {
 
   try {
     const state = await program.account.bridgeState.fetch(bridgeStatePda);
-    console.log(
-      "Bridge already initialized with owner:",
-      state.owner.toString()
-    );
-    console.log("Bridge Program ID:", program.programId.toString());
+    console.log("Bridge already initialized with owner:", state.owner.toString());
     console.log("Bridge Token Account:", state.mintAccount.toString());
     return;
   } catch (e) {
@@ -52,7 +48,7 @@ export async function initializeBitvmBridge() {
     minBtcPerMint: new BN(7500),
     maxBtcPerBurn: new BN(1000000),
     minBtcPerBurn: new BN(7500),
-    skipTxVerification: true,
+    skipTxVerification: false,
   };
 
   // Initialize contract

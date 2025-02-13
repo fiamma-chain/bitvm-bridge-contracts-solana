@@ -1,7 +1,7 @@
 use crate::{
     errors::BtcLightClientError,
     events::TransactionVerified,
-    state::{BlockHashEntry, BtcLightClientState},
+    state::{BlockHashEntry, BtcLightClientState, TxVerifiedState},
     utils::{verify_merkle_proof, verify_output_script},
 };
 use anchor_lang::prelude::*;
@@ -110,13 +110,4 @@ pub struct BtcTxProof {
     pub output_index: u32,
     pub expected_amount: u64,
     pub expected_script_hash: [u8; 32],
-}
-
-#[account]
-pub struct TxVerifiedState {
-    pub is_verified: bool,
-}
-
-impl TxVerifiedState {
-    pub const SPACE: usize = 8 + 1; // discriminator + is_verified
 }

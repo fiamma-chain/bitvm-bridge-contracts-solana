@@ -6,7 +6,7 @@ import { submitHeaders } from "./commands/submit-headers";
 const program = new Command();
 
 program
-  .command("initialize")
+  .command("initialize-bridge")
   .description("Initialize BitVM Bridge program")
   .action(async () => {
     try {

@@ -4,7 +4,7 @@
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check",
     "postinstall": "zx prepare.mjs",
-    "initialize-bridge": "ts-node cli/src/index.ts initialize",
+    "initialize-bridge": "ts-node cli/src/index.ts initialize-bridge",
     "initialize-btc-light-client": "ts-node cli/src/index.ts initialize-btc-light-client",
     "submit-headers": "ts-node cli/src/index.ts submit-headers --daemon"
   },

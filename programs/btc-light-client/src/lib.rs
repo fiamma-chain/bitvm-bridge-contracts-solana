@@ -8,7 +8,7 @@ pub mod utils;
 
 use instructions::*;
 
-declare_id!("H2WfnhhCB3hPsSjNSbzQDw4ivDWjAHSo1QwXc6kZxMG1");
+declare_id!("DmpWvPvJjhoQc5TDgxjHFoFhXfya9GgKgQb2BdmKvFhF");
 
 #[program]
 pub mod btc_light_client {
@@ -59,5 +59,12 @@ pub mod btc_light_client {
         tx_proof: BtcTxProof,
     ) -> Result<()> {
         instructions::verify_tx::verify_transaction(ctx, block_height, tx_proof)
+    }
+
+    pub fn update_min_confirmations(
+        ctx: Context<UpdateMinConfirmations>,
+        min_confirmations: u64,
+    ) -> Result<()> {
+        instructions::update_min_confirmations(ctx, min_confirmations)
     }
 }

@@ -26,3 +26,10 @@ pub struct NewTotalDifficultySinceRetarget {
     pub new_height: u64,
     pub new_work: [u8; 32],
 }
+
+#[event]
+pub struct MinConfirmationsUpdated {
+    pub old_value: u64,
+    pub new_value: u64,
+    pub authority: Pubkey,
+}

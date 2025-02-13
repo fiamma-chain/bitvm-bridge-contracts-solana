@@ -1,14 +1,14 @@
-import { Program, Wallet } from "@coral-xyz/anchor";
+import { Program, AnchorProvider, Wallet } from "@coral-xyz/anchor";
 import * as anchor from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { BtcLightClient } from "../../../target/types/btc_light_client";
 import { loadWalletFromEnv, getRpcUrl } from "../utils/wallet";
 
 export async function initializeBtcLightClient() {
-    const connection = new Connection(getRpcUrl());
+    const connection = new Connection(getRpcUrl(), "confirmed");
     const wallet = new Wallet(loadWalletFromEnv());
 
-    console.log("current wallet", wallet.publicKey.toString());
+    console.log("current wallet", wallet.publicKey.toString(),);
 
     // Create provider
     const provider = new anchor.AnchorProvider(connection, wallet, {});
@@ -16,16 +16,19 @@ export async function initializeBtcLightClient() {
 
     const program = anchor.workspace.BtcLightClient as Program<BtcLightClient>;
 
-    // Genesis block parameters (testnet)
+    console.log("program", program.programId.toString());
+
+    // Genesis block parameters (testnet4)
     const genesisBlock = {
-        height: 230627,
+        height: 69775,
+        // reverse the hash to little endian
         hash: Buffer.from(
-            "35c40037f72c8a014c431212ad9d7452682243e5fa5de4bc4548550ac2000000",
+            "00000000e0c90d9bebd0396a6a51f9c2ecf54c111d7c6ef6d8fb9b251cadb860",
             "hex"
-        ),
-        time: 1736757020,
+        ).reverse(),
+        time: 1739336563,
         target: Buffer.from(
-            "0003400100000000000000000000000000000000000000000000000000000000",
+            "ffff0000000000000000000000000000000000000000000000000000",
             "hex"
         ),
     };
@@ -45,7 +48,7 @@ export async function initializeBtcLightClient() {
                 genesisBlock.time,
                 Array.from(genesisBlock.target),
                 true,  // isTestnet
-                new anchor.BN(1)  // minConfirmations
+                new anchor.BN(3)  // minConfirmations
             )
             .accounts({})
             .rpc();
