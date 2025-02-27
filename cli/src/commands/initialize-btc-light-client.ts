@@ -20,13 +20,13 @@ export async function initializeBtcLightClient() {
 
     // Genesis block parameters (testnet4)
     const genesisBlock = {
-        height: 69775,
+        height: 71872,
         // reverse the hash to little endian
         hash: Buffer.from(
-            "00000000e0c90d9bebd0396a6a51f9c2ecf54c111d7c6ef6d8fb9b251cadb860",
+            "0000000050f19ed6a245ca841d4fb0e069448dcd5254483645fe1947f7b80e86",
             "hex"
         ).reverse(),
-        time: 1739336563,
+        time: 1740652701,
         target: Buffer.from(
             "ffff0000000000000000000000000000000000000000000000000000",
             "hex"
