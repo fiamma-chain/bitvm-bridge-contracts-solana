@@ -54,3 +54,22 @@ pub fn unpause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
     ctx.accounts.bridge_state.burn_paused = false;
     Ok(())
 }
+
+#[derive(Accounts)]
+pub struct ToggleSkipTxVerification<'info> {
+    #[account(
+        mut,
+        seeds = [b"bridge_state"],
+        bump,
+        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
+    )]
+    pub bridge_state: Account<'info, BridgeState>,
+
+    pub owner: Signer<'info>,
+}
+
+pub fn toggle_skip_tx_verification(ctx: Context<ToggleSkipTxVerification>) -> Result<()> {
+    ctx.accounts.bridge_state.skip_tx_verification =
+        !ctx.accounts.bridge_state.skip_tx_verification;
+    Ok(())
+}

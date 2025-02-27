@@ -53,6 +53,10 @@ pub mod bitvm_bridge {
         )
     }
 
+    pub fn toggle_skip_tx_verification(ctx: Context<ToggleSkipTxVerification>) -> Result<()> {
+        admin::toggle_skip_tx_verification(ctx)
+    }
+
     pub fn pause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
         admin::pause_burn(ctx)
     }

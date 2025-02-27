@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { initializeBitvmBridge } from "./commands/initialize-bridge";
 import { initializeBtcLightClient } from "./commands/initialize-btc-light-client";
 import { submitHeaders } from "./commands/submit-headers";
+import { updateSkipTxVerification } from "./commands/update-skip-tx-verification";
 
 const program = new Command();
 
@@ -42,6 +43,13 @@ program
         process.exit(1);
       }
     }
+  });
+
+program
+  .command("update-skip-tx-verification")
+  .description("Update skip tx verification")
+  .action(async () => {
+    await updateSkipTxVerification();
   });
 
 program.parse(process.argv);
