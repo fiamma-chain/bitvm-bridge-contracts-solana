@@ -8,7 +8,7 @@ import { getRpcUrl, loadSubmitterWalletFromEnv } from "../utils/wallet";
 let isRunning = false;
 let intervalId: NodeJS.Timeout;
 
-const MAX_REORG = 20; // Maximum number of blocks to check for reorg
+const MAX_REORG = 50; // Maximum number of blocks to check for reorg
 
 export async function submitHeaders(options: { daemon?: boolean } = {}) {
     if (isRunning) {

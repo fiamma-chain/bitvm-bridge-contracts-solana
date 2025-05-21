@@ -44,9 +44,9 @@ export async function initializeBitvmBridge() {
   };
 
   const bridgeParams = {
-    maxBtcPerMint: new BN(1000000),
+    maxBtcPerMint: new BN(300000000),
     minBtcPerMint: new BN(100000),
-    maxBtcPerBurn: new BN(1000000),
+    maxBtcPerBurn: new BN(300000000),
     minBtcPerBurn: new BN(100000),
     skipTxVerification: true,
   };
