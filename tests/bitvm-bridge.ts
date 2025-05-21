@@ -17,8 +17,8 @@ const bitvmBridgeIDL = require("../target/idl/bitvm_bridge.json");
 const bitvmBridgeProgramId = new PublicKey(bitvmBridgeIDL.address);
 
 const metadata = {
-  name: "Mama BTC",
-  symbol: "mamaBTC",
+  name: "Fiamma BTC",
+  symbol: "FIABTC",
   uri: "https://raw.githubusercontent.com/fiamma-chain/bitvm-bridge-contracts-solana/refs/heads/main/metadata/metadata.json",
 };
 
