@@ -1,6 +1,6 @@
 {
-    "name": "Mama BTC",
-    "symbol": "mamaBTC",
-    "description": "Mama BTC is a Solana SPL token that bridges BTC to Solana.",
+    "name": "Fiamma BTC",
+    "symbol": "FIABTC",
+    "description": "FIABTC is a Solana SPL token that bridges BTC to Solana.",
     "image": "https://raw.githubusercontent.com/fiamma-chain/bitvm-bridge-contracts-solana/main/metadata/mama-btc.png"
 }
