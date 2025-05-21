@@ -8,7 +8,7 @@ pub mod instructions;
 pub mod state;
 use instructions::*;
 
-declare_id!("J64ucfNboe9e3FtoeSxMzmkobfTxEkJgiLwY4nYgQLBe");
+declare_id!("9xnSpcyf2XaC8qucRLJSmrCEafHyMiYjazTiKFcXn9i4");
 
 #[program]
 pub mod bitvm_bridge {

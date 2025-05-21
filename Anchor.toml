@@ -5,12 +5,12 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-bitvm_bridge = "J64ucfNboe9e3FtoeSxMzmkobfTxEkJgiLwY4nYgQLBe"
-btc_light_client = "8dCJMu6sum1A3W2R6iB1gHus45ayrnRmChSfGus4rRsL"
+bitvm_bridge = "9xnSpcyf2XaC8qucRLJSmrCEafHyMiYjazTiKFcXn9i4"
+btc_light_client = "CKHMiG6tuh8V6x9yWbEJnKAhSW7YWKuvZLQ99vTy3RCc"
 
 [programs.localnet]
-bitvm_bridge = "J64ucfNboe9e3FtoeSxMzmkobfTxEkJgiLwY4nYgQLBe"
-btc_light_client = "8dCJMu6sum1A3W2R6iB1gHus45ayrnRmChSfGus4rRsL"
+bitvm_bridge = "9xnSpcyf2XaC8qucRLJSmrCEafHyMiYjazTiKFcXn9i4"
+btc_light_client = "CKHMiG6tuh8V6x9yWbEJnKAhSW7YWKuvZLQ99vTy3RCc"
 
 [registry]
 url = "https://api.apr.dev"

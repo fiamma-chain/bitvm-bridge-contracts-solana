@@ -38,8 +38,8 @@ export async function initializeBitvmBridge() {
 
   // Initialize parameters
   const metadata = {
-    name: "Mama BTC",
-    symbol: "mamaBTC",
+    name: "Fiamma BTC",
+    symbol: "FIABTC",
     uri: "https://raw.githubusercontent.com/fiamma-chain/bitvm-bridge-contracts-solana/main/metadata/metadata.json",
   };
 
