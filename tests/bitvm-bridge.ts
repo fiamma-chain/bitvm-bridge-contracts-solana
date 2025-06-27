@@ -292,7 +292,7 @@ describe("Test Bitvm Bridge", async () => {
 
     // Burn the tokens from the associated token account.
     await bitvmBridgeProgram.methods
-      .burn(amount, btcAddr, operatorId)
+      .burn(amount, btcAddr, 100, operatorId)
       .accounts({
         authority: owner.publicKey,
         mintAccount: mintKeypair.publicKey,
@@ -361,7 +361,7 @@ describe("Test Bitvm Bridge", async () => {
 
     try {
       await bitvmBridgeProgram.methods
-        .burn(amount, btcAddr, operatorId)
+        .burn(amount, btcAddr, 100, operatorId)
         .accounts({
           authority: owner.publicKey,
           mintAccount: mintKeypair.publicKey,

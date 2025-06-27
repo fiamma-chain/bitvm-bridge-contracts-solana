@@ -33,6 +33,7 @@ pub fn burn_token(
     ctx: Context<BurnToken>,
     amount: u64,
     btc_addr: String,
+    fee_rate: u32,
     operator_id: u64,
 ) -> Result<()> {
     let bridge_state = &ctx.accounts.bridge_state;
@@ -55,6 +56,7 @@ pub fn burn_token(
     emit!(BurnEvent {
         from: ctx.accounts.authority.key(),
         btc_addr: btc_addr,
+        fee_rate,
         value: amount,
         operator_id: operator_id,
     });
