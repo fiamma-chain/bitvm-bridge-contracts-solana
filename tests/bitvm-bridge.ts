@@ -241,7 +241,6 @@ describe("Test Bitvm Bridge", async () => {
     expect(state.mintAccount.toString()).to.equal(
       mintKeypair.publicKey.toString()
     );
-    expect(state.burnPaused).to.be.false;
     expect(state.maxBtcPerMint.toString()).to.equal(
       bridgeParams.maxBtcPerMint.toString()
     );
@@ -341,50 +340,6 @@ describe("Test Bitvm Bridge", async () => {
     assert.equal(recipientTokenAccount.amount.toString(), "10000");
   });
 
-  it("Pause the bridge burn!", async () => {
-    await bitvmBridgeProgram.methods
-      .pauseBurn()
-      .accounts({
-        owner: owner.publicKey,
-      })
-      .rpc();
-    const state = await bitvmBridgeProgram.account.bridgeState.fetch(
-      bridgeStatePda
-    );
-    assert.isTrue(state.burnPaused);
-  });
-
-  it("Burn some tokens from your wallet when paused should fail!", async () => {
-    const amount = new anchor.BN(20000);
-    const btcAddr = "bc1q650503685h3xqk4z7w476k476k476k476k476";
-    const operatorId = new anchor.BN(1);
-
-    try {
-      await bitvmBridgeProgram.methods
-        .burn(amount, btcAddr, 100, operatorId)
-        .accounts({
-          authority: owner.publicKey,
-          mintAccount: mintKeypair.publicKey,
-        })
-        .rpc();
-      assert.fail("should fail");
-    } catch (error) {
-      assert.include(error.message, "BurnPaused");
-    }
-  });
-
-  it("Unpause the bridge burn!", async () => {
-    await bitvmBridgeProgram.methods
-      .unpauseBurn()
-      .accounts({
-        owner: owner.publicKey,
-      })
-      .rpc();
-    const state = await bitvmBridgeProgram.account.bridgeState.fetch(
-      bridgeStatePda
-    );
-    assert.isFalse(state.burnPaused);
-  });
 
   it("Non-owner performs mint should fail!", async () => {
     const amount = new anchor.BN(10000);

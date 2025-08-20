@@ -22,7 +22,6 @@ pub struct BurnToken<'info> {
     #[account(
         seeds = [b"bridge_state"],
         bump,
-        constraint = !bridge_state.burn_paused @ BitvmBridgeError::BurnPaused
     )]
     pub bridge_state: Account<'info, BridgeState>,
 

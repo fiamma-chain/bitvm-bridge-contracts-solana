@@ -14,9 +14,6 @@ pub enum BitvmBridgeError {
     #[msg("Invalid pegout amount")]
     InvalidPegoutAmount,
 
-    #[msg("Burn is paused")]
-    BurnPaused,
-
     #[msg("Tx verification required")]
     TxVerificationRequired,
 

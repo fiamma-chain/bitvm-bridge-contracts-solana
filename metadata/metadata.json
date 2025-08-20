@@ -2,5 +2,5 @@
     "name": "Fiamma BTC",
     "symbol": "FIABTC",
     "description": "FIABTC is a Solana SPL token that bridges BTC to Solana.",
-    "image": "https://raw.githubusercontent.com/fiamma-chain/bitvm-bridge-contracts-solana/main/metadata/mama-btc.png"
+    "image": "https://raw.githubusercontent.com/fiamma-chain/bitvm-bridge-contracts-solana/main/metadata/FiaBTC.svg"
 }

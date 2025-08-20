@@ -18,7 +18,7 @@ export async function initializeBtcLightClient() {
 
     console.log("program", program.programId.toString());
 
-    // Genesis block parameters (testnet4)
+    // Genesis block parameters (mainnet)
     const genesisBlock = {
         height: 83167,
         // reverse the hash to little endian
@@ -61,8 +61,8 @@ export async function initializeBtcLightClient() {
                 Array.from(genesisBlock.hash),
                 genesisBlock.time,
                 Array.from(genesisBlock.target),
-                true,  // isTestnet
-                new anchor.BN(1)  // minConfirmations
+                false,  // isTestnet
+                new anchor.BN(3)  // minConfirmations
             )
             .accounts({})
             .rpc();

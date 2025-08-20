@@ -33,29 +33,6 @@ pub fn update_bridge_params(
 }
 
 #[derive(Accounts)]
-pub struct ToggleBurnPause<'info> {
-    #[account(
-        mut,
-        seeds = [b"bridge_state"],
-        bump,
-        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
-    )]
-    pub bridge_state: Account<'info, BridgeState>,
-
-    pub owner: Signer<'info>,
-}
-
-pub fn pause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
-    ctx.accounts.bridge_state.burn_paused = true;
-    Ok(())
-}
-
-pub fn unpause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
-    ctx.accounts.bridge_state.burn_paused = false;
-    Ok(())
-}
-
-#[derive(Accounts)]
 pub struct ToggleSkipTxVerification<'info> {
     #[account(
         mut,
