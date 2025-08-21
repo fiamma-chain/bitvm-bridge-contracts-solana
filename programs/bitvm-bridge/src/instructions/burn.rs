@@ -22,6 +22,7 @@ pub struct BurnToken<'info> {
     #[account(
         seeds = [b"bridge_state"],
         bump,
+        constraint = !bridge_state.burn_paused @ BitvmBridgeError::BurnPaused
     )]
     pub bridge_state: Account<'info, BridgeState>,
 
@@ -40,6 +41,11 @@ pub fn burn_token(
     require!(
         amount >= bridge_state.min_btc_per_burn && amount <= bridge_state.max_btc_per_burn,
         BitvmBridgeError::InvalidPegoutAmount
+    );
+
+    require!(
+        fee_rate > 0 && fee_rate as u64 <= bridge_state.max_fee_rate,
+        BitvmBridgeError::InvalidFeeRate
     );
 
     let cpi_accounts = Burn {

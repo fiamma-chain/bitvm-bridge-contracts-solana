@@ -17,6 +17,8 @@ pub struct BridgeParams {
     pub max_btc_per_burn: u64,
     pub min_btc_per_burn: u64,
     pub skip_tx_verification: bool,
+    pub max_fee_rate: u64,
+    pub lp_withdraw_timeout: u64,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -106,6 +108,9 @@ pub fn initialize(
     ctx.accounts.bridge_state.max_btc_per_burn = bridge_params.max_btc_per_burn;
     ctx.accounts.bridge_state.min_btc_per_burn = bridge_params.min_btc_per_burn;
     ctx.accounts.bridge_state.skip_tx_verification = bridge_params.skip_tx_verification;
+    ctx.accounts.bridge_state.burn_paused = false;
+    ctx.accounts.bridge_state.max_fee_rate = bridge_params.max_fee_rate;
+    ctx.accounts.bridge_state.lp_withdraw_timeout = bridge_params.lp_withdraw_timeout;
 
     Ok(())
 }

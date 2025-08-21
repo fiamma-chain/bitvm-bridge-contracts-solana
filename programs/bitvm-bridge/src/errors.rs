@@ -25,4 +25,37 @@ pub enum BitvmBridgeError {
 
     #[msg("Mismatch btc amount")]
     MismatchBtcAmount,
+
+    #[msg("Burn paused")]
+    BurnPaused,
+
+    #[msg("Invalid LP ID")]
+    InvalidLPID,
+
+    #[msg("LP already registered")]
+    LPAlreadyRegistered,
+
+    #[msg("Invalid LP address")]
+    InvalidLPAddress,
+
+    #[msg("Invalid Bitcoin address")]
+    InvalidBitcoinAddress,
+
+    #[msg("Invalid LP withdraw ID")]
+    InvalidLPWithdrawID,
+
+    #[msg("Invalid LP withdraw timeout")]
+    InvalidLPWithdrawTimeout,
+
+    #[msg("Invalid LP withdraw amount")]
+    InvalidLPWithdrawAmount,
+
+    #[msg("Invalid fee rate")]
+    InvalidFeeRate,
+
+    #[msg("LP not active")]
+    LPNotActive,
+
+    #[msg("Insufficient allowance")]
+    InsufficientAllowance,
 }

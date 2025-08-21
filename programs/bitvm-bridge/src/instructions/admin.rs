@@ -1,4 +1,5 @@
 use crate::errors::BitvmBridgeError;
+use crate::events::LPWithdrawTimeoutUpdated;
 use crate::state::BridgeState;
 use anchor_lang::prelude::*;
 
@@ -48,5 +49,69 @@ pub struct ToggleSkipTxVerification<'info> {
 pub fn toggle_skip_tx_verification(ctx: Context<ToggleSkipTxVerification>) -> Result<()> {
     ctx.accounts.bridge_state.skip_tx_verification =
         !ctx.accounts.bridge_state.skip_tx_verification;
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct ToggleBurnPause<'info> {
+    #[account(
+        mut,
+        seeds = [b"bridge_state"],
+        bump,
+        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
+    )]
+    pub bridge_state: Account<'info, BridgeState>,
+
+    pub owner: Signer<'info>,
+}
+
+pub fn pause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
+    ctx.accounts.bridge_state.burn_paused = true;
+    Ok(())
+}
+
+pub fn unpause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
+    ctx.accounts.bridge_state.burn_paused = false;
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct SetMaxFeeRate<'info> {
+    #[account(
+        mut,
+        seeds = [b"bridge_state"],
+        bump,
+        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
+    )]
+    pub bridge_state: Account<'info, BridgeState>,
+
+    pub owner: Signer<'info>,
+}
+
+pub fn set_max_fee_rate(ctx: Context<SetMaxFeeRate>, max_fee_rate: u64) -> Result<()> {
+    ctx.accounts.bridge_state.max_fee_rate = max_fee_rate;
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct SetLPWithdrawTimeout<'info> {
+    #[account(
+        mut,
+        seeds = [b"bridge_state"],
+        bump,
+        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
+    )]
+    pub bridge_state: Account<'info, BridgeState>,
+
+    pub owner: Signer<'info>,
+}
+
+pub fn set_lp_withdraw_timeout(ctx: Context<SetLPWithdrawTimeout>, timeout: u64) -> Result<()> {
+    ctx.accounts.bridge_state.lp_withdraw_timeout = timeout;
+
+    emit!(LPWithdrawTimeoutUpdated {
+        new_timeout: timeout,
+    });
+
     Ok(())
 }

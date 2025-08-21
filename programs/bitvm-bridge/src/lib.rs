@@ -7,6 +7,7 @@ pub mod events;
 pub mod instructions;
 pub mod state;
 use instructions::*;
+use state::{LPClaimInfo, LPRegister, LPStatus};
 
 declare_id!("APq3X5pBj5txLJmzmxL5yrDJXEbikgDMCVcQPoYtZCs");
 
@@ -58,5 +59,68 @@ pub mod bitvm_bridge {
 
     pub fn toggle_skip_tx_verification(ctx: Context<ToggleSkipTxVerification>) -> Result<()> {
         admin::toggle_skip_tx_verification(ctx)
+    }
+
+    pub fn pause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
+        admin::pause_burn(ctx)
+    }
+
+    pub fn unpause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
+        admin::unpause_burn(ctx)
+    }
+
+    pub fn set_max_fee_rate(ctx: Context<SetMaxFeeRate>, max_fee_rate: u64) -> Result<()> {
+        admin::set_max_fee_rate(ctx, max_fee_rate)
+    }
+
+    pub fn set_lp_withdraw_timeout(ctx: Context<SetLPWithdrawTimeout>, timeout: u64) -> Result<()> {
+        admin::set_lp_withdraw_timeout(ctx, timeout)
+    }
+
+    // LP Management Functions
+    pub fn register_lp(ctx: Context<RegisterLP>, lp_register: LPRegister) -> Result<()> {
+        lp::register_lp(ctx, lp_register)
+    }
+
+    pub fn update_lp_status(
+        ctx: Context<UpdateLPStatus>,
+        lp_id: u64,
+        new_status: LPStatus,
+    ) -> Result<()> {
+        lp::update_lp_status(ctx, lp_id, new_status)
+    }
+
+    pub fn withdraw_by_lp(
+        ctx: Context<WithdrawByLP>,
+        withdraw_id: u64,
+        btc_addr: String,
+        receiver_script_hash: [u8; 32],
+        receive_min_amount: u64,
+        lp_id: u64,
+        value: u64,
+        fee_rate: u64,
+    ) -> Result<()> {
+        lp::withdraw_by_lp(
+            ctx,
+            withdraw_id,
+            btc_addr,
+            receiver_script_hash,
+            receive_min_amount,
+            lp_id,
+            value,
+            fee_rate,
+        )
+    }
+
+    pub fn claim_lp_withdraw(
+        ctx: Context<ClaimLPWithdraw>,
+        withdraw_id: u64,
+        lp_claim_info: LPClaimInfo,
+    ) -> Result<()> {
+        lp::claim_lp_withdraw(ctx, withdraw_id, lp_claim_info)
+    }
+
+    pub fn refund_lp_withdraw(ctx: Context<RefundLPWithdraw>, withdraw_id: u64) -> Result<()> {
+        lp::refund_lp_withdraw(ctx, withdraw_id)
     }
 }
