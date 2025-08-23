@@ -43,7 +43,7 @@ pub fn submit_block_headers(
     for (i, header) in headers.iter().enumerate() {
         let current_height = block_height + i as u64;
         let hash = header.block_hash();
-        let hash_bytes = header.block_hash().to_byte_array();
+        let hash_bytes = hash.to_byte_array();
 
         // Get or create block hash account
         let block_hash_entry = get_and_verify_block_hash_account(
@@ -128,7 +128,12 @@ pub fn submit_block_headers(
 
 #[derive(Accounts)]
 pub struct SubmitBlockHeaders<'info> {
-    #[account(mut, seeds = [b"btc_light_client"], bump)]
+    #[account(
+        mut, 
+        seeds = [b"btc_light_client"], 
+        bump,
+        constraint = state.owner == submitter.key() @ BtcLightClientError::UnauthorizedSigner
+    )]
     pub state: Account<'info, BtcLightClientState>,
 
     #[account(mut)]

@@ -87,6 +87,8 @@ pub fn mint_token(ctx: Context<MintToken>, _tx_id: [u8; 32], amount: u64) -> Res
         BitvmBridgeError::TxAlreadyMinted
     );
 
+    tx_minted_state.is_minted = true;
+
     // Mint tokens
     mint_to(
         CpiContext::new(
@@ -99,8 +101,6 @@ pub fn mint_token(ctx: Context<MintToken>, _tx_id: [u8; 32], amount: u64) -> Res
         ),
         amount,
     )?;
-
-    tx_minted_state.is_minted = true;
 
     emit!(MintEvent {
         to: ctx.accounts.recipient.key(),

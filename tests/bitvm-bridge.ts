@@ -222,6 +222,8 @@ describe("Test Bitvm Bridge", async () => {
       minBtcPerMint: new anchor.BN(7500),
       maxBtcPerBurn: new anchor.BN(1000000),
       minBtcPerBurn: new anchor.BN(7500),
+      maxFeeRate: new anchor.BN(500),
+      lpWithdrawTimeout: new anchor.BN(129600),
       skipTxVerification: false,
     };
 

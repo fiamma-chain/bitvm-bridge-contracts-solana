@@ -64,4 +64,7 @@ pub enum BitvmBridgeError {
 
     #[msg("Insufficient allowance")]
     InsufficientAllowance,
+
+    #[msg("Invalid pda account")]
+    InvalidPdaAccount,
 }

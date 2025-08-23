@@ -1,9 +1,17 @@
-use crate::state::BlockHashEntry;
+use crate::errors::BtcLightClientError;
+use crate::state::{BlockHashEntry, BtcLightClientState};
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 #[instruction(height: u64)]
 pub struct CreateBlockHashAccount<'info> {
+    #[account(
+        seeds = [b"btc_light_client"], 
+        bump,
+        constraint = state.owner == payer.key() @ BtcLightClientError::UnauthorizedSigner
+    )]
+    pub state: Account<'info, BtcLightClientState>,
+
     #[account(
         init_if_needed,
         seeds = [b"block_hash_entry".as_ref(), height.to_le_bytes().as_ref()],

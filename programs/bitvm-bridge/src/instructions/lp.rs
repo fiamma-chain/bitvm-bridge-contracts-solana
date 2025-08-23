@@ -289,13 +289,20 @@ pub fn claim_lp_withdraw(
         BitvmBridgeError::TxNotVerified
     );
 
+    let bridge_seeds = &[&b"bridge_state"[..], &[ctx.bumps.bridge_state]];
+    let bridge_signer = &[&bridge_seeds[..]];
+
     // Transfer tokens from contract to LP
     let cpi_accounts = Transfer {
         from: ctx.accounts.contract_token_account.to_account_info(),
         to: ctx.accounts.lp_token_account.to_account_info(),
         authority: ctx.accounts.bridge_state.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
+    let cpi_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        cpi_accounts,
+        bridge_signer,
+    );
     transfer(cpi_ctx, lp_withdraw_state.withdraw_amount)?;
 
     emit!(ClaimLPWithdrawEvent {
@@ -361,13 +368,20 @@ pub fn refund_lp_withdraw(ctx: Context<RefundLPWithdraw>, _withdraw_id: u64) -> 
         BitvmBridgeError::InvalidLPWithdrawTimeout
     );
 
+    let bridge_seeds = &[&b"bridge_state"[..], &[ctx.bumps.bridge_state]];
+    let bridge_signer = &[&bridge_seeds[..]];
+
     // Transfer tokens from contract back to receiver
     let cpi_accounts = Transfer {
         from: ctx.accounts.contract_token_account.to_account_info(),
         to: ctx.accounts.receiver_token_account.to_account_info(),
         authority: ctx.accounts.bridge_state.to_account_info(),
     };
-    let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
+    let cpi_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        cpi_accounts,
+        bridge_signer,
+    );
     transfer(cpi_ctx, lp_withdraw_state.withdraw_amount)?;
 
     emit!(RefundLPWithdrawEvent {

@@ -22,16 +22,21 @@ pub fn verify_transaction(
 
     let header: BlockHeader = deserialize(&tx_proof.block_header)
         .map_err(|_| BtcLightClientError::InvalidHeaderFormat)?;
+
+    // Cache block hash calculation to avoid repeated computation
+    let header_hash_bytes = header.block_hash().to_byte_array();
     require!(
-        header.block_hash().to_byte_array() == block_hash_entry.hash,
+        header_hash_bytes == block_hash_entry.hash,
         BtcLightClientError::BlockHashMismatch
     );
 
     let tx: bitcoin::Transaction =
         deserialize(&tx_proof.raw_tx).map_err(|_| BtcLightClientError::InvalidTransactionFormat)?;
 
+    // Cache transaction ID calculation to avoid repeated computation
+    let tx_id_bytes = tx.txid().to_byte_array();
     require!(
-        tx.txid().to_byte_array() == tx_proof.tx_id,
+        tx_id_bytes == tx_proof.tx_id,
         BtcLightClientError::TransactionIdMismatch
     );
 
@@ -50,7 +55,8 @@ pub fn verify_transaction(
         BtcLightClientError::InvalidOutputScript
     );
 
-    let tx_hash = bitcoin::Txid::from_byte_array(tx_proof.tx_id);
+    // Reuse the cached transaction ID to create Txid for merkle proof verification
+    let tx_hash = bitcoin::Txid::from_byte_array(tx_id_bytes);
     require!(
         verify_merkle_proof(
             tx_hash,
