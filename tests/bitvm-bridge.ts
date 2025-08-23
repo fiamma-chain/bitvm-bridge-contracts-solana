@@ -381,4 +381,289 @@ describe("Test Bitvm Bridge", async () => {
       assert.include(error.message, "TxAlreadyMinted");
     }
   });
+
+  // Additional tests for edge cases and admin functions
+  describe("Bridge Admin Tests", () => {
+    it("Owner can update bridge parameters", async () => {
+      const newParams = {
+        maxBtcPerMint: new anchor.BN(2000000),
+        minBtcPerMint: new anchor.BN(10000),
+        maxBtcPerBurn: new anchor.BN(2000000),
+        minBtcPerBurn: new anchor.BN(10000),
+      };
+
+      await bitvmBridgeProgram.methods
+        .updateBridgeParams(
+          newParams.maxBtcPerMint,
+          newParams.minBtcPerMint,
+          newParams.maxBtcPerBurn,
+          newParams.minBtcPerBurn
+        )
+        .accounts({})
+        .rpc();
+
+      const [bridgeStatePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("bridge_state")],
+        bitvmBridgeProgram.programId
+      );
+
+      const state = await bitvmBridgeProgram.account.bridgeState.fetch(
+        bridgeStatePda
+      );
+      expect(state.maxBtcPerMint.toString()).to.equal(
+        newParams.maxBtcPerMint.toString()
+      );
+      expect(state.minBtcPerMint.toString()).to.equal(
+        newParams.minBtcPerMint.toString()
+      );
+    });
+
+    it("Non-owner cannot update bridge parameters", async () => {
+      const nonOwner = new Keypair();
+
+      try {
+        await bitvmBridgeProgram.methods
+          .updateBridgeParams(
+            new anchor.BN(3000000),
+            new anchor.BN(15000),
+            new anchor.BN(3000000),
+            new anchor.BN(15000)
+          )
+          .accounts({
+            owner: nonOwner.publicKey,
+          })
+          .signers([nonOwner])
+          .rpc();
+        assert.fail("should fail");
+      } catch (error) {
+        assert.include(error.message, "UnauthorizedOwner");
+      }
+    });
+
+    it("Owner can pause and unpause burn", async () => {
+      const [bridgeStatePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("bridge_state")],
+        bitvmBridgeProgram.programId
+      );
+
+      // Pause burn
+      await bitvmBridgeProgram.methods
+        .pauseBurn()
+        .accounts({})
+        .rpc();
+
+      const pausedState = await bitvmBridgeProgram.account.bridgeState.fetch(
+        bridgeStatePda
+      );
+      expect(pausedState.burnPaused).to.be.true;
+
+      // Unpause burn
+      await bitvmBridgeProgram.methods
+        .unpauseBurn()
+        .accounts({})
+        .rpc();
+
+      const unpausedState = await bitvmBridgeProgram.account.bridgeState.fetch(
+        bridgeStatePda
+      );
+      expect(unpausedState.burnPaused).to.be.false;
+    });
+
+    it("Owner can toggle skip tx verification", async () => {
+      const [bridgeStatePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("bridge_state")],
+        bitvmBridgeProgram.programId
+      );
+
+      // First check initial state (should be false)
+      const initialState = await bitvmBridgeProgram.account.bridgeState.fetch(
+        bridgeStatePda
+      );
+      expect(initialState.skipTxVerification).to.be.false;
+
+      // Toggle to true
+      await bitvmBridgeProgram.methods
+        .toggleSkipTxVerification()
+        .accounts({})
+        .rpc();
+
+      const toggledState = await bitvmBridgeProgram.account.bridgeState.fetch(
+        bridgeStatePda
+      );
+      expect(toggledState.skipTxVerification).to.be.true;
+
+    });
+  });
+
+  describe("Mint Edge Cases", () => {
+    // Note: These tests use the same txId that was already verified in the main test
+
+    it("Should fail with amount below minimum", async () => {
+      // Use the same txId that was already verified in the main test
+      const tooSmallAmount = new anchor.BN(1000); // Below min of 10000
+
+      try {
+        await bitvmBridgeProgram.methods
+          .mint(Array.from(txId), tooSmallAmount)
+          .accountsPartial({
+            mintAuthority: owner.publicKey,
+            recipient: owner.publicKey,
+            mintAccount: mintKeypair.publicKey,
+          })
+          .rpc();
+        assert.fail("should fail");
+      } catch (error) {
+        assert.include(error.message, "InvalidPeginAmount");
+      }
+    });
+
+    it("Should fail with amount above maximum", async () => {
+      // Use the same txId that was already verified in the main test
+      const tooLargeAmount = new anchor.BN(3000000); // Above max of 2000000
+
+      try {
+        await bitvmBridgeProgram.methods
+          .mint(Array.from(txId), tooLargeAmount)
+          .accountsPartial({
+            mintAuthority: owner.publicKey,
+            recipient: owner.publicKey,
+            mintAccount: mintKeypair.publicKey,
+          })
+          .rpc();
+        assert.fail("should fail");
+      } catch (error) {
+        assert.include(error.message, "InvalidPeginAmount");
+      }
+    });
+
+
+  });
+
+  describe("LP System Tests", () => {
+    const lpId = new anchor.BN(1);
+    const lpKeypair = new Keypair();
+
+    it("Owner can register LP", async () => {
+      const lpRegister = {
+        lpId: lpId,
+        bitcoinAddr: "bc1qlptest123456789",
+        lpAddr: lpKeypair.publicKey,
+        fee: new anchor.BN(1000),
+      };
+
+      await bitvmBridgeProgram.methods
+        .registerLp(lpRegister)
+        .accounts({})
+        .rpc();
+
+      const [lpStatePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("lp_state"), lpId.toArrayLike(Buffer, "le", 8)],
+        bitvmBridgeProgram.programId
+      );
+
+      const lpState = await bitvmBridgeProgram.account.lpState.fetch(lpStatePda);
+      expect(lpState.id.toString()).to.equal(lpId.toString());
+      expect(lpState.lpAddr.toString()).to.equal(lpKeypair.publicKey.toString());
+      expect(lpState.bitcoinAddr).to.equal(lpRegister.bitcoinAddr);
+    });
+
+    it("Should fail LP registration with empty Bitcoin address", async () => {
+      const invalidLpRegister = {
+        lpId: new anchor.BN(2),
+        bitcoinAddr: "", // Empty address
+        lpAddr: lpKeypair.publicKey,
+        fee: new anchor.BN(500),
+      };
+
+      try {
+        await bitvmBridgeProgram.methods
+          .registerLp(invalidLpRegister)
+          .accounts({})
+          .rpc();
+        assert.fail("should fail");
+      } catch (error) {
+        assert.include(error.message, "InvalidBitcoinAddress");
+      }
+    });
+
+    it("Should fail LP registration with default LP address", async () => {
+      const invalidLpRegister = {
+        lpId: new anchor.BN(3),
+        bitcoinAddr: "bc1qvalid",
+        lpAddr: PublicKey.default, // Default pubkey
+        fee: new anchor.BN(500),
+      };
+
+      try {
+        await bitvmBridgeProgram.methods
+          .registerLp(invalidLpRegister)
+          .accounts({})
+          .rpc();
+        assert.fail("should fail");
+      } catch (error) {
+        assert.include(error.message, "InvalidLPAddress");
+      }
+    });
+
+    it("Owner can update LP status", async () => {
+      await bitvmBridgeProgram.methods
+        .updateLpStatus(lpId, { suspended: {} })
+        .accounts({})
+        .rpc();
+
+      const [lpStatePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("lp_state"), lpId.toArrayLike(Buffer, "le", 8)],
+        bitvmBridgeProgram.programId
+      );
+
+      const lpState = await bitvmBridgeProgram.account.lpState.fetch(lpStatePda);
+      expect(lpState.status).to.deep.equal({ suspended: {} });
+
+      // Reactivate for other tests
+      await bitvmBridgeProgram.methods
+        .updateLpStatus(lpId, { active: {} })
+        .accounts({})
+        .rpc();
+    });
+  });
+
+  describe("Fee Management", () => {
+    it("Owner can set max fee rate", async () => {
+      const newMaxFeeRate = new anchor.BN(1000);
+
+      await bitvmBridgeProgram.methods
+        .setMaxFeeRate(newMaxFeeRate)
+        .accounts({})
+        .rpc();
+
+      const [bridgeStatePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("bridge_state")],
+        bitvmBridgeProgram.programId
+      );
+
+      const state = await bitvmBridgeProgram.account.bridgeState.fetch(
+        bridgeStatePda
+      );
+      expect(state.maxFeeRate.toString()).to.equal(newMaxFeeRate.toString());
+    });
+
+    it("Owner can set LP withdraw timeout", async () => {
+      const newTimeout = new anchor.BN(86400); // 1 day
+
+      await bitvmBridgeProgram.methods
+        .setLpWithdrawTimeout(newTimeout)
+        .accounts({})
+        .rpc();
+
+      const [bridgeStatePda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("bridge_state")],
+        bitvmBridgeProgram.programId
+      );
+
+      const state = await bitvmBridgeProgram.account.bridgeState.fetch(
+        bridgeStatePda
+      );
+      expect(state.lpWithdrawTimeout.toString()).to.equal(newTimeout.toString());
+    });
+  });
 });

@@ -16,7 +16,7 @@ btc_light_client = "6ht3bQk95HutmusCwed2vh14YcVaJgbHmHdS5VkfbEUt"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "https://api.devnet.solana.com"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

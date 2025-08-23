@@ -49,6 +49,8 @@ export async function initializeBitvmBridge() {
     maxBtcPerBurn: new BN(300000000),
     minBtcPerBurn: new BN(20000),
     skipTxVerification: false,
+    maxFeeRate: new BN(500),
+    lpWithdrawTimeout: new BN(129600),
   };
 
   // Initialize contract
