@@ -6,7 +6,7 @@ use crate::events::{
     ClaimLPWithdraw as ClaimLPWithdrawEvent, LPRegistered, LPStatusUpdated,
     RefundLPWithdraw as RefundLPWithdrawEvent, WithdrawByLP as WithdrawByLPEvent,
 };
-use crate::state::{BridgeState, LPClaimInfo, LPRegister, LPState, LPStatus, LPWithdrawState};
+use crate::state::{BridgeState, LPRegister, LPState, LPStatus, LPWithdrawState};
 
 // Register LP instruction
 #[derive(Accounts)]
@@ -208,13 +208,13 @@ pub fn withdraw_by_lp(
 
 // Claim LP withdraw instruction
 #[derive(Accounts)]
-#[instruction(withdraw_id: u64)]
+#[instruction(withdraw_id: u64, btc_tx_id: [u8; 32])]
 pub struct ClaimLPWithdraw<'info> {
     #[account(
         mut,
         seeds = [b"bridge_state"],
         bump,
-        constraint = bridge_state.owner == business.key() @ BitvmBridgeError::UnauthorizedOwner
+        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
     )]
     pub bridge_state: Account<'info, BridgeState>,
 
@@ -228,7 +228,7 @@ pub struct ClaimLPWithdraw<'info> {
         mut,
         seeds = [b"lp_withdraw".as_ref(), withdraw_id.to_le_bytes().as_ref()],
         bump,
-        close = business
+        close = owner
     )]
     pub lp_withdraw_state: Account<'info, LPWithdrawState>,
 
@@ -247,26 +247,47 @@ pub struct ClaimLPWithdraw<'info> {
     pub lp_token_account: Account<'info, TokenAccount>,
 
     #[account(mut)]
-    pub business: Signer<'info>,
+    pub owner: Signer<'info>,
     pub token_program: Program<'info, Token>,
+
+    // Bitcoin transaction verification accounts
+    #[account(
+        mut,
+        seeds = [b"tx_verified_state", btc_tx_id.as_ref()],
+        seeds::program = btc_light_client::ID,
+        bump,
+    )]
+    pub tx_verified_state: Option<Account<'info, btc_light_client::state::TxVerifiedState>>,
 }
 
 pub fn claim_lp_withdraw(
     ctx: Context<ClaimLPWithdraw>,
     _withdraw_id: u64,
-    lp_claim_info: LPClaimInfo,
+    _btc_tx_id: [u8; 32],
+    amount_sats: u64,
 ) -> Result<()> {
+    let bridge_state = &ctx.accounts.bridge_state;
     let lp_withdraw_state = &ctx.accounts.lp_withdraw_state;
     let lp_state = &ctx.accounts.lp_state;
+    let tx_verified_state = &ctx.accounts.tx_verified_state;
 
     // Validate claim info
     require!(
-        lp_withdraw_state.receive_min_amount <= lp_claim_info.amount_sats,
+        amount_sats > lp_withdraw_state.receive_min_amount,
         BitvmBridgeError::InvalidLPWithdrawAmount
     );
 
-    // TODO: Add Bitcoin transaction verification here
-    // This would involve calling the BTC light client to verify the Bitcoin payment
+    require!(
+        amount_sats <= lp_withdraw_state.withdraw_amount,
+        BitvmBridgeError::InvalidLPWithdrawAmount
+    );
+
+    // Verify Bitcoin transaction (similar to mint function)
+    require!(
+        bridge_state.skip_tx_verification
+            || (tx_verified_state.is_some() && tx_verified_state.as_ref().unwrap().is_verified),
+        BitvmBridgeError::TxNotVerified
+    );
 
     // Transfer tokens from contract to LP
     let cpi_accounts = Transfer {
@@ -295,7 +316,7 @@ pub struct RefundLPWithdraw<'info> {
         mut,
         seeds = [b"bridge_state"],
         bump,
-        constraint = bridge_state.owner == business.key() @ BitvmBridgeError::UnauthorizedOwner
+        constraint = bridge_state.owner == owner.key() @ BitvmBridgeError::UnauthorizedOwner
     )]
     pub bridge_state: Account<'info, BridgeState>,
 
@@ -303,7 +324,7 @@ pub struct RefundLPWithdraw<'info> {
         mut,
         seeds = [b"lp_withdraw".as_ref(), withdraw_id.to_le_bytes().as_ref()],
         bump,
-        close = business
+        close = owner
     )]
     pub lp_withdraw_state: Account<'info, LPWithdrawState>,
 
@@ -325,7 +346,7 @@ pub struct RefundLPWithdraw<'info> {
     pub receiver: AccountInfo<'info>,
 
     #[account(mut)]
-    pub business: Signer<'info>,
+    pub owner: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }
 

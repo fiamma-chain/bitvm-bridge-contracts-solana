@@ -3,7 +3,7 @@ use crate::{
     events::MintEvent,
     state::{BridgeState, TxMintedState},
 };
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::program_option::COption};
 use anchor_spl::{
     associated_token::AssociatedToken,
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
@@ -33,7 +33,6 @@ pub struct MintToken<'info> {
     #[account(
         seeds = [b"bridge_state"],
         bump,
-        constraint = bridge_state.owner == mint_authority.key() @ BitvmBridgeError::UnauthorizedMinter
     )]
     pub bridge_state: Account<'info, BridgeState>,
     pub token_program: Program<'info, Token>,
@@ -62,13 +61,21 @@ pub fn mint_token(ctx: Context<MintToken>, _tx_id: [u8; 32], amount: u64) -> Res
     let bridge_state = &ctx.accounts.bridge_state;
     let tx_verified_state = &ctx.accounts.tx_verified_state;
     let tx_minted_state = &mut ctx.accounts.tx_minted_state;
+
+    // Check if the mint authority is the bridge owner or the mint authority is set
+    let mint_info = &ctx.accounts.mint_account;
+    require!(
+        bridge_state.owner == ctx.accounts.mint_authority.key()
+            || mint_info.mint_authority == COption::Some(ctx.accounts.mint_authority.key()),
+        BitvmBridgeError::UnauthorizedMinter
+    );
+
     // Verify amount limits
     require!(
         amount >= bridge_state.min_btc_per_mint && amount <= bridge_state.max_btc_per_mint,
         BitvmBridgeError::InvalidPeginAmount
     );
 
-    // For Testing, we skip the tx verification
     require!(
         bridge_state.skip_tx_verification
             || (tx_verified_state.is_some() && tx_verified_state.as_ref().unwrap().is_verified),
@@ -93,12 +100,12 @@ pub fn mint_token(ctx: Context<MintToken>, _tx_id: [u8; 32], amount: u64) -> Res
         amount,
     )?;
 
+    tx_minted_state.is_minted = true;
+
     emit!(MintEvent {
         to: ctx.accounts.recipient.key(),
         value: amount,
     });
-
-    tx_minted_state.is_minted = true;
 
     Ok(())
 }

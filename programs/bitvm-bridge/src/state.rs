@@ -25,12 +25,6 @@ pub struct LPInfo {
     pub status: LPStatus,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
-pub struct LPClaimInfo {
-    pub withdraw_id: u64,
-    pub amount_sats: u64,
-}
-
 #[account]
 pub struct BridgeState {
     pub owner: Pubkey,

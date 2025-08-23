@@ -7,7 +7,7 @@ pub mod events;
 pub mod instructions;
 pub mod state;
 use instructions::*;
-use state::{LPClaimInfo, LPRegister, LPStatus};
+use state::{LPRegister, LPStatus};
 
 declare_id!("APq3X5pBj5txLJmzmxL5yrDJXEbikgDMCVcQPoYtZCs");
 
@@ -115,9 +115,10 @@ pub mod bitvm_bridge {
     pub fn claim_lp_withdraw(
         ctx: Context<ClaimLPWithdraw>,
         withdraw_id: u64,
-        lp_claim_info: LPClaimInfo,
+        btc_tx_id: [u8; 32],
+        amount_sats: u64,
     ) -> Result<()> {
-        lp::claim_lp_withdraw(ctx, withdraw_id, lp_claim_info)
+        lp::claim_lp_withdraw(ctx, withdraw_id, btc_tx_id, amount_sats)
     }
 
     pub fn refund_lp_withdraw(ctx: Context<RefundLPWithdraw>, withdraw_id: u64) -> Result<()> {

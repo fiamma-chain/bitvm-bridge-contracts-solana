@@ -1,5 +1,5 @@
 use crate::errors::BitvmBridgeError;
-use crate::events::LPWithdrawTimeoutUpdated;
+use crate::events::{LPWithdrawTimeoutUpdated, OwnershipTransferred};
 use crate::state::BridgeState;
 use anchor_lang::prelude::*;
 
@@ -66,11 +66,21 @@ pub struct ToggleBurnPause<'info> {
 }
 
 pub fn pause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
+    require!(
+        !ctx.accounts.bridge_state.burn_paused,
+        BitvmBridgeError::BurnAlreadyPaused
+    );
+
     ctx.accounts.bridge_state.burn_paused = true;
     Ok(())
 }
 
 pub fn unpause_burn(ctx: Context<ToggleBurnPause>) -> Result<()> {
+    require!(
+        ctx.accounts.bridge_state.burn_paused,
+        BitvmBridgeError::BurnNotPaused
+    );
+
     ctx.accounts.bridge_state.burn_paused = false;
     Ok(())
 }
@@ -111,6 +121,39 @@ pub fn set_lp_withdraw_timeout(ctx: Context<SetLPWithdrawTimeout>, timeout: u64)
 
     emit!(LPWithdrawTimeoutUpdated {
         new_timeout: timeout,
+    });
+
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct TransferOwnership<'info> {
+    #[account(
+        mut,
+        seeds = [b"bridge_state"],
+        bump,
+        constraint = bridge_state.owner == current_owner.key() @ BitvmBridgeError::UnauthorizedOwner
+    )]
+    pub bridge_state: Account<'info, BridgeState>,
+
+    pub current_owner: Signer<'info>,
+
+    /// CHECK: New owner can be any pubkey (including multisig)
+    pub new_owner: UncheckedAccount<'info>,
+}
+
+pub fn transfer_ownership(ctx: Context<TransferOwnership>) -> Result<()> {
+    let bridge_state = &mut ctx.accounts.bridge_state;
+    let previous_owner = bridge_state.owner;
+    let new_owner = ctx.accounts.new_owner.key();
+
+    // Update the owner
+    bridge_state.owner = new_owner;
+
+    // Emit ownership transfer event
+    emit!(OwnershipTransferred {
+        previous_owner,
+        new_owner,
     });
 
     Ok(())

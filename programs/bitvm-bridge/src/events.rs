@@ -57,11 +57,12 @@ pub struct RefundLPWithdraw {
 }
 
 #[event]
-pub struct LPManagerUpdated {
-    pub new_lp_manager: Pubkey,
+pub struct LPWithdrawTimeoutUpdated {
+    pub new_timeout: u64,
 }
 
 #[event]
-pub struct LPWithdrawTimeoutUpdated {
-    pub new_timeout: u64,
+pub struct OwnershipTransferred {
+    pub previous_owner: Pubkey,
+    pub new_owner: Pubkey,
 }

@@ -29,6 +29,12 @@ pub enum BitvmBridgeError {
     #[msg("Burn paused")]
     BurnPaused,
 
+    #[msg("Burn already paused")]
+    BurnAlreadyPaused,
+
+    #[msg("Burn not paused")]
+    BurnNotPaused,
+
     #[msg("Invalid LP ID")]
     InvalidLPID,
 
