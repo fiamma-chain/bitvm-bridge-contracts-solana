@@ -10,7 +10,7 @@ pub mod utils;
 
 use instructions::*;
 
-declare_id!("6ht3bQk95HutmusCwed2vh14YcVaJgbHmHdS5VkfbEUt");
+declare_id!("EqriXRhEJRn6FGrhJFchtNL5uGi5cuwQK8aW2SzmRqUc");
 
 #[program]
 pub mod btc_light_client {

@@ -105,6 +105,27 @@ Close deploy buffer account:
 solana program close --buffers
 ```
 
+### Deploy to New Address
+
+#### First generate a new keypair
+```bash
+solana-keygen new -o target/deploy/bitvm_bridge-keypair.json --force
+
+solana-keygen new -o target/deploy/btc_light_client-keypair.json --force
+```
+
+#### Then update the Anchor.toml file with the new program id
+```bash
+
+anchor keys sync
+```
+#### Then build the program and deploy the programs
+
+```bash
+anchor build 
+anchor deploy
+```
+
 ## Contract Parameters
 
 The bridge contract includes configurable parameters:

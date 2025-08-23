@@ -9,7 +9,7 @@ pub mod state;
 use instructions::*;
 use state::{LPRegister, LPStatus};
 
-declare_id!("APq3X5pBj5txLJmzmxL5yrDJXEbikgDMCVcQPoYtZCs");
+declare_id!("GPCGdKzJhT9hTceEE2j71gjtzqVCyzNFHtLXkjik6zdy");
 
 #[program]
 pub mod bitvm_bridge {
