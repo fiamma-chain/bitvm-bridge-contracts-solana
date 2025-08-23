@@ -67,4 +67,7 @@ pub enum BitvmBridgeError {
 
     #[msg("Invalid pda account")]
     InvalidPdaAccount,
+
+    #[msg("Insufficient committee signatures")]
+    InsufficientCommitteeSignatures,
 }

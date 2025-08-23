@@ -26,8 +26,6 @@ pub struct MintToken<'info> {
         associated_token::mint = mint_account,
         associated_token::authority = recipient,
     )]
-    // recipient is the owner of the associated token account
-    // This is a custom account type that is used to store the token account data
     pub associated_token_account: Account<'info, TokenAccount>,
 
     #[account(
@@ -74,6 +72,28 @@ pub fn mint_token(ctx: Context<MintToken>, _tx_id: [u8; 32], amount: u64) -> Res
     require!(
         amount >= bridge_state.min_btc_per_mint && amount <= bridge_state.max_btc_per_mint,
         BitvmBridgeError::InvalidPeginAmount
+    );
+
+    // Verify committee signatures using remaining_accounts
+    let mut valid_committee_signatures = 0u8;
+
+    // Check each signer in remaining_accounts
+    for account_info in ctx.remaining_accounts.iter() {
+        // Verify this account is a signer
+        if !account_info.is_signer {
+            continue;
+        }
+
+        // Check if this signer is a committee member
+        if bridge_state.committee_members.contains(&account_info.key()) {
+            valid_committee_signatures += 1;
+        }
+    }
+
+    // Require minimum committee signatures
+    require!(
+        valid_committee_signatures >= bridge_state.signature_threshold,
+        BitvmBridgeError::InsufficientCommitteeSignatures
     );
 
     require!(

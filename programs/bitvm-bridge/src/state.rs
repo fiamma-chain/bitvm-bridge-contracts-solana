@@ -37,6 +37,8 @@ pub struct BridgeState {
     pub burn_paused: bool,
     pub max_fee_rate: u64,
     pub lp_withdraw_timeout: u64,
+    pub committee_members: Vec<Pubkey>, // Committee public keys
+    pub signature_threshold: u8,        // Required signatures for tx approval
 }
 
 #[account]

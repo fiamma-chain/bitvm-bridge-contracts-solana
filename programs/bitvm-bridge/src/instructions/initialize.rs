@@ -19,6 +19,8 @@ pub struct BridgeParams {
     pub skip_tx_verification: bool,
     pub max_fee_rate: u64,
     pub lp_withdraw_timeout: u64,
+    pub committee_members: Vec<Pubkey>,
+    pub signature_threshold: u8,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
@@ -111,6 +113,8 @@ pub fn initialize(
     ctx.accounts.bridge_state.burn_paused = false;
     ctx.accounts.bridge_state.max_fee_rate = bridge_params.max_fee_rate;
     ctx.accounts.bridge_state.lp_withdraw_timeout = bridge_params.lp_withdraw_timeout;
+    ctx.accounts.bridge_state.committee_members = bridge_params.committee_members;
+    ctx.accounts.bridge_state.signature_threshold = bridge_params.signature_threshold;
 
     Ok(())
 }
