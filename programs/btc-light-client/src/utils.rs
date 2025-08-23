@@ -11,6 +11,10 @@ pub fn verify_merkle_proof(
 ) -> bool {
     let mut current_hash = tx_hash.to_raw_hash();
 
+    if proof.is_empty() && tx_index != 0 {
+        return false;
+    }
+
     for (i, next_hash) in proof.iter().enumerate() {
         let mut concat = vec![];
         // extracts the i-th bit of tx idx
@@ -34,8 +38,19 @@ pub fn verify_merkle_proof(
 
 pub fn verify_output_script(script: &bitcoin::Script, expected_hash: &[u8; 32]) -> bool {
     if script.is_p2wsh() {
-        let script_hash = script.as_bytes();
-        &script_hash[2..] == expected_hash
+        // P2WSH: Extract 32-byte hash directly
+        let script_bytes = script.as_bytes();
+        &script_bytes[2..34] == expected_hash
+    } else if script.is_p2sh() {
+        // P2SH: Extract 20-byte hash and pad to 32 bytes (right-padded with zeros)
+        let script_bytes = script.as_bytes();
+        let mut padded_hash = [0u8; 32];
+        padded_hash[..20].copy_from_slice(&script_bytes[2..22]);
+        &padded_hash == expected_hash
+    } else if script.is_p2tr() {
+        // P2TR: Extract 32-byte taproot output directly
+        let script_bytes = script.as_bytes();
+        &script_bytes[2..34] == expected_hash
     } else {
         false
     }
