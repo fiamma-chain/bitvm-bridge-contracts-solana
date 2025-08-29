@@ -1,7 +1,7 @@
 use crate::errors::BtcLightClientError;
 use crate::state::BlockHashEntry;
 use anchor_lang::prelude::*;
-use bitcoin::hashes::{sha256d, Hash};
+use bitcoin::hashes::{sha256, sha256d, Hash};
 
 pub fn verify_merkle_proof(
     tx_hash: bitcoin::Txid,
@@ -37,23 +37,9 @@ pub fn verify_merkle_proof(
 }
 
 pub fn verify_output_script(script: &bitcoin::Script, expected_hash: &[u8; 32]) -> bool {
-    if script.is_p2wsh() {
-        // P2WSH: Extract 32-byte hash directly
-        let script_bytes = script.as_bytes();
-        &script_bytes[2..34] == expected_hash
-    } else if script.is_p2sh() {
-        // P2SH: Extract 20-byte hash and pad to 32 bytes (right-padded with zeros)
-        let script_bytes = script.as_bytes();
-        let mut padded_hash = [0u8; 32];
-        padded_hash[..20].copy_from_slice(&script_bytes[2..22]);
-        &padded_hash == expected_hash
-    } else if script.is_p2tr() {
-        // P2TR: Extract 32-byte taproot output directly
-        let script_bytes = script.as_bytes();
-        &script_bytes[2..34] == expected_hash
-    } else {
-        false
-    }
+    let script_bytes = script.as_bytes();
+    let dest_script_hash = sha256::Hash::hash(script_bytes);
+    &dest_script_hash[..] == expected_hash
 }
 
 pub fn mul_in_place(arr: &mut [u8; 32], multiplicator: u32) {
